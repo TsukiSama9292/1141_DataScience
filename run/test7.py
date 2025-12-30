@@ -20,10 +20,10 @@ def main():
         use_timestamp=True,  # Need timestamp for time decay
         use_item_bias=False,
         use_svd=True,
-        n_components=150,
+        n_components=128,
         use_time_decay=True,
         half_life_days=500,
-        k_neighbors=60,
+        k_neighbors=50,
         n_samples=500,
         top_n=10,
         random_state=42
