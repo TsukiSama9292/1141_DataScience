@@ -3,10 +3,10 @@ requires = ["hatchling>=1.26"]
 build-backend = "hatchling.build"
 
 [project]
-name = "recommendation_system"
+name = "movie_recommendation"
 version = "0.0.1"
 requires-python = ">=3.12, <3.13"
-description = "recommendation_system"
+description = "Movie Recommendation Project"
 
 authors = [
     { name = "Xuan‑You Lin", email = "a0985821880@gmail.com" }
@@ -17,12 +17,13 @@ dependencies = [
     "ipywidgets>=8.1.8",
     "nest-asyncio>=1.6.0",
     "jupyterlab-widgets>=3.0.16",
-
     "kagglehub>=0.3.13",
     "numpy>=2.4.0",
     "pandas>=2.3.3",
     "scipy>=1.16.3",
     "scikit-learn>=1.8.0",
+    "matplotlib>=3.10.8",
+    "seaborn>=0.13.2",
 ]
 
 [tool.hatch.build.targets.wheel]
