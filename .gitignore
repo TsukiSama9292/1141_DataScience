@@ -1,0 +1,15 @@
+.venv/
+.conda/
+__pycache__/
+.ipynb_checkpoints
+.DS_Store
+.vscode/
+.env
+.env.*
+.idea/
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+*.log
+*.pot
