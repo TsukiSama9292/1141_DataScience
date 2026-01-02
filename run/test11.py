@@ -1,28 +1,25 @@
 """
-Test 8 (Refactored): Similarity Amplification
-使用相似度放大，強化鄰居相似度影響
+實驗11: 20M資料, SVD=200維, KNN=20
+目的: 測試高維度SVD的過擬合風險
 """
 
 import sys
 from pathlib import Path
 
-# Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / 'src'))
 
 from movie_recommendation.experiment import Experiment, ExperimentConfig
 
 
 def main():
-    """Run Test 8 experiment."""
     config = ExperimentConfig(
-        name="實驗8",
+        name="實驗11",
         data_limit=None,
         use_timestamp=False,
-        use_item_bias=True,
+        use_item_bias=False,
         use_svd=True,
-        n_components=128,
-        k_neighbors=50,
-        amplification_factor=2.5,  # Amplify similarities
+        n_components=200,
+        k_neighbors=20,
         n_samples=500,
         top_n=10,
         random_state=42
@@ -31,7 +28,7 @@ def main():
     experiment = Experiment(config)
     results = experiment.run()
     
-    print(f"\n實驗完成: {config.name}")
+    print(f"\n✅ 實驗完成: {config.name}")
 
 
 if __name__ == "__main__":

@@ -82,7 +82,13 @@ class Evaluator:
     
     def ndcg_at_k(self, recommended: List[int], relevant: List[int], k: int) -> float:
         """
-        Calculate NDCG@K.
+        Calculate NDCG@K (Normalized Discounted Cumulative Gain).
+        
+        Formula: NDCG@K = DCG@K / IDCG@K
+        DCG@K = Σ(i=1 to K) [2^rel_i - 1] / log2(i+1)
+        
+        For binary relevance (rel ∈ {0,1}): 2^1-1=1, 2^0-1=0
+        Simplifies to: DCG@K = Σ rel_i / log2(i+1)
         
         Args:
             recommended: List of recommended item indices (ordered)
@@ -90,17 +96,20 @@ class Evaluator:
             k: Cutoff position
             
         Returns:
-            NDCG@K score
+            NDCG@K score (0.0 to 1.0)
         """
         recommended_k = recommended[:k]
         
-        # For binary relevance (Leave-One-Out)
+        # DCG: For binary relevance (0/1)
         dcg = 0.0
         for i, item in enumerate(recommended_k):
             if item in relevant:
-                dcg += 1.0 / np.log2(i + 2)  # i+2 because i is 0-indexed
+                # DCG formula: rel / log2(position + 1)
+                # i is 0-indexed, so position = i+1, log2(i+2) = log2(position+1)
+                dcg += 1.0 / np.log2(i + 2)
         
-        # IDCG for single relevant item
+        # IDCG: Ideal DCG assumes all relevant items at top positions
+        # For single relevant item (Leave-One-Out): IDCG = 1.0 / log2(2) = 1.0
         idcg = 1.0
         
         return dcg / idcg if idcg > 0 else 0.0
@@ -200,7 +209,14 @@ class Evaluator:
             if target_movie_idx in recommended:
                 hits += 1
                 rank = recommended.index(target_movie_idx) + 1
+                
+                # MRR: 1 / rank (第一個相關項目的排名倒數)
                 reciprocal_ranks.append(1.0 / rank)
+                
+                # NDCG for single relevant item:
+                # DCG = 1.0 / log2(rank + 1)
+                # IDCG = 1.0 / log2(2) = 1.0 (最理想位置是第1位)
+                # NDCG = DCG / IDCG = 1.0 / log2(rank + 1)
                 ndcg_scores.append(1.0 / np.log2(rank + 1))
             else:
                 reciprocal_ranks.append(0.0)

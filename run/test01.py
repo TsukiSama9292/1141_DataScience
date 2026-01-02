@@ -1,19 +1,17 @@
 """
-Test 1 (Refactored): Baseline KNN without SVD
-使用 1M 筆評分資料，不使用 SVD 降維
+實驗1: Baseline - 1M資料, 無SVD, KNN=20
+目的: 建立最小基線，驗證基本KNN在小數據上的表現
 """
 
 import sys
 from pathlib import Path
 
-# Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / 'src'))
 
 from movie_recommendation.experiment import Experiment, ExperimentConfig
 
 
 def main():
-    """Run Test 1 experiment."""
     config = ExperimentConfig(
         name="實驗1",
         data_limit=1_000_000,
@@ -29,7 +27,7 @@ def main():
     experiment = Experiment(config)
     results = experiment.run()
     
-    print(f"\n實驗完成: {config.name}")
+    print(f"\n✅ 實驗完成: {config.name}")
 
 
 if __name__ == "__main__":
