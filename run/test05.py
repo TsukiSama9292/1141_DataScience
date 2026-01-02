@@ -1,6 +1,6 @@
 """
-實驗5: 20M資料, 無SVD, KNN=20
-目的: SVD掃描的基線參照（同實驗4）
+實驗5: 20M資料, SVD=25維, KNN=20
+目的: 驗證低維度SVD的效果
 """
 
 import sys
@@ -17,7 +17,8 @@ def main():
         data_limit=None,
         use_timestamp=False,
         use_item_bias=False,
-        use_svd=False,
+        use_svd=True,
+        n_components=25,
         k_neighbors=20,
         n_samples=500,
         top_n=10,
@@ -32,3 +33,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

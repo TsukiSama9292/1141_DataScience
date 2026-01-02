@@ -7,6 +7,7 @@ import time
 import gc
 from typing import Dict, Optional
 from pathlib import Path
+import json
 
 try:
     import psutil
@@ -153,6 +154,34 @@ def log_metrics(
         peak_memory: Peak memory usage in MB
     """
     logger.info("")
+
+    # write a machine-readable JSON summary beside the text log
+    try:
+        log_path = Path('log')
+        log_path.mkdir(parents=True, exist_ok=True)
+        summary = {
+            'name': logger.name,
+            'n_samples': n_samples,
+            'metrics': {k: float(v) for k, v in metrics.items()},
+            'time_records': {k: float(v) for k, v in time_records.items()},
+            'peak_memory_mb': float(peak_memory)
+        }
+
+        # Write atomically: write to a temp file then rename
+        tmp_path = log_path / f"{logger.name}.json.tmp"
+        final_path = log_path / f"{logger.name}.json"
+        with tmp_path.open('w', encoding='utf-8') as fh:
+            json.dump(summary, fh, ensure_ascii=False, indent=2)
+            fh.flush()
+        try:
+            tmp_path.replace(final_path)
+        except Exception:
+            # fallback to rename via os.replace
+            import os
+            os.replace(str(tmp_path), str(final_path))
+        logger.info(f"已寫入 JSON 摘要: {final_path.name}")
+    except Exception as e:
+        logger.warning(f"無法寫入 JSON 摘要: {e}")
     logger.info(f"評估結果 (樣本數: {n_samples})")
     logger.info("")
     

@@ -199,7 +199,9 @@ class Experiment:
             self.tracker.sample_memory()
             self._log_time("SVD 降維", stage_start)
         else:
-            self.user_features = matrix_for_knn.toarray()
+            # Keep user features as sparse matrix to avoid large dense allocations
+            # Many sklearn routines accept CSR sparse matrices for distance computations.
+            self.user_features = matrix_for_knn
         
         # Train KNN
         stage_start = time.time()

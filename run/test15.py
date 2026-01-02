@@ -1,6 +1,6 @@
 """
-實驗15: 20M資料, SVD=128維, KNN=40
-目的: 測試中高等鄰居數
+實驗15: 20M資料, SVD=128維, KNN=50
+目的: 測試50鄰居（原最佳配置）
 """
 
 import sys
@@ -19,7 +19,7 @@ def main():
         use_item_bias=False,
         use_svd=True,
         n_components=128,
-        k_neighbors=40,
+        k_neighbors=50,
         n_samples=500,
         top_n=10,
         random_state=42

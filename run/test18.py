@@ -1,6 +1,6 @@
 """
-實驗18: 20M資料, SVD=128維, KNN=100
-目的: 測試大量鄰居的噪音問題
+實驗18: 20M資料, SVD=128維, KNN=50, 無Item Bias
+目的: Item Bias對比基線
 """
 
 import sys
@@ -19,7 +19,7 @@ def main():
         use_item_bias=False,
         use_svd=True,
         n_components=128,
-        k_neighbors=100,
+        k_neighbors=50,
         n_samples=500,
         top_n=10,
         random_state=42

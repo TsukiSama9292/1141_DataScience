@@ -1,6 +1,6 @@
 """
-實驗17: 20M資料, SVD=128維, KNN=75
-目的: 測試更多鄰居的影響
+實驗17: 20M資料, SVD=128維, KNN=100
+目的: 測試大量鄰居的噪音問題
 """
 
 import sys
@@ -19,7 +19,7 @@ def main():
         use_item_bias=False,
         use_svd=True,
         n_components=128,
-        k_neighbors=75,
+        k_neighbors=100,
         n_samples=500,
         top_n=10,
         random_state=42

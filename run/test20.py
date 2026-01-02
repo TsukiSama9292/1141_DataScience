@@ -1,6 +1,6 @@
 """
-實驗20: 20M資料, SVD=128維, KNN=50, 有Item Bias ⭐最佳基線⭐
-目的: 證明Item Bias的關鍵作用
+實驗20: 20M資料, SVD=128維, KNN=50, Item Bias + 相似度放大
+目的: 測試相似度放大策略
 """
 
 import sys
@@ -19,6 +19,7 @@ def main():
         use_item_bias=True,
         use_svd=True,
         n_components=128,
+        amplification_factor=2.5,
         k_neighbors=50,
         n_samples=500,
         top_n=10,
@@ -28,7 +29,7 @@ def main():
     experiment = Experiment(config)
     results = experiment.run()
     
-    print(f"\n✅ 實驗完成: {config.name} - 最佳基線配置")
+    print(f"\n✅ 實驗完成: {config.name}")
 
 
 if __name__ == "__main__":

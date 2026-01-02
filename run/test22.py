@@ -1,6 +1,6 @@
 """
-實驗22: 20M資料, SVD=128維, KNN=50, 時間衰減 (負面結果)
-目的: 驗證時間衰減在電影推薦中的無效性
+實驗22: 20M資料, SVD=128維, KNN=50, TF-IDF (負面結果)
+目的: 驗證TF-IDF在電影推薦中的災難性效果
 """
 
 import sys
@@ -15,11 +15,11 @@ def main():
     config = ExperimentConfig(
         name="實驗22",
         data_limit=None,
-        use_timestamp=True,
+        use_timestamp=False,
         use_item_bias=False,
         use_svd=True,
         n_components=128,
-        time_decay_lambda=500,  # 半衰期500天
+        use_tfidf=True,
         k_neighbors=50,
         n_samples=500,
         top_n=10,

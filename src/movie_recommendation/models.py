@@ -3,7 +3,7 @@ Recommendation models module.
 """
 
 import numpy as np
-from scipy.sparse import csr_matrix
+from scipy.sparse import csr_matrix, issparse
 from sklearn.neighbors import NearestNeighbors
 from typing import List, Tuple, Optional, Dict
 import logging
@@ -53,7 +53,27 @@ class KNNRecommender:
         )
         self.knn.fit(features)
         self.trained = True
-        
+
+        # Precompute neighbors for all users to avoid repeated kneighbors() calls
+        # But skip full precompute when the user count is very large to avoid OOM.
+        n_users = features.shape[0]
+        max_precompute_users = 20000
+        if n_users <= max_precompute_users:
+            try:
+                # request one extra neighbor to exclude self (k+1)
+                distances, indices = self.knn.kneighbors(features, n_neighbors=self.n_neighbors + 1)
+                # store arrays excluding the query itself (first column)
+                self._neighbor_indices_all = indices[:, 1:]
+                self._neighbor_similarities_all = 1 - distances[:, 1:]
+            except Exception:
+                # if global kneighbors fails (e.g., memory), fallback to on-demand
+                self._neighbor_indices_all = None
+                self._neighbor_similarities_all = None
+        else:
+            # skip precompute for large user sets; use on-demand or batched kneighbors in evaluation
+            self._neighbor_indices_all = None
+            self._neighbor_similarities_all = None
+
         logger.info("KNN 模型訓練完成")
     
     def find_neighbors(
@@ -77,12 +97,25 @@ class KNNRecommender:
             raise ValueError("Model must be fitted before finding neighbors")
         
         k = k or self.n_neighbors
-        query_vec = user_features[user_idx].reshape(1, -1)
+
+        # If we have a cached neighbor matrix (computed in fit), use it
+        if getattr(self, '_neighbor_indices_all', None) is not None:
+            inds = self._neighbor_indices_all[user_idx][:k]
+            sims = self._neighbor_similarities_all[user_idx][:k]
+            return inds, sims
+
+        # Fallback: compute on-demand for this user
+        # Support both dense ndarray and sparse matrix for user_features
+        if issparse(user_features):
+            query_vec = user_features[user_idx]
+        else:
+            query_vec = user_features[user_idx].reshape(1, -1)
+
         distances, indices = self.knn.kneighbors(query_vec, n_neighbors=k+1)
-        
+
         neighbor_indices = indices.flatten()[1:]
         neighbor_similarities = 1 - distances.flatten()[1:]
-        
+
         return neighbor_indices, neighbor_similarities
     
     def predict_rating(

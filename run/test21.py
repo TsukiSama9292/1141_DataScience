@@ -1,6 +1,6 @@
 """
-實驗21: 20M資料, SVD=128維, KNN=50, Item Bias + 相似度放大
-目的: 測試相似度放大策略
+實驗21: 20M資料, SVD=128維, KNN=50, 時間衰減 (負面結果)
+目的: 驗證時間衰減在電影推薦中的無效性
 """
 
 import sys
@@ -15,11 +15,12 @@ def main():
     config = ExperimentConfig(
         name="實驗21",
         data_limit=None,
-        use_timestamp=False,
-        use_item_bias=True,
+        use_timestamp=True,
+        use_item_bias=False,
         use_svd=True,
         n_components=128,
-        similarity_amplification=2.5,
+        use_time_decay=True,
+        half_life_days=500,  # 半衰期500天
         k_neighbors=50,
         n_samples=500,
         top_n=10,
@@ -29,7 +30,7 @@ def main():
     experiment = Experiment(config)
     results = experiment.run()
     
-    print(f"\n✅ 實驗完成: {config.name}")
+    print(f"\n✅ 實驗完成: {config.name} - 負面結果")
 
 
 if __name__ == "__main__":

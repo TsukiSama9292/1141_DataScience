@@ -1,6 +1,6 @@
 """
-實驗7: 20M資料, SVD=50維, KNN=20
-目的: 測試中低維度SVD
+實驗7: 20M資料, SVD=100維, KNN=20
+目的: 測試中高維度SVD
 """
 
 import sys
@@ -18,7 +18,7 @@ def main():
         use_timestamp=False,
         use_item_bias=False,
         use_svd=True,
-        n_components=50,
+        n_components=100,
         k_neighbors=20,
         n_samples=500,
         top_n=10,

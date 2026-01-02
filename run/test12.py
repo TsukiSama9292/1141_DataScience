@@ -1,6 +1,6 @@
 """
-實驗12: 20M資料, SVD=128維, KNN=10
-目的: 測試較少鄰居數的影響
+實驗12: 20M資料, SVD=128維, KNN=20
+目的: KNN掃描基線（同實驗9）
 """
 
 import sys
@@ -19,7 +19,7 @@ def main():
         use_item_bias=False,
         use_svd=True,
         n_components=128,
-        k_neighbors=10,
+        k_neighbors=20,
         n_samples=500,
         top_n=10,
         random_state=42

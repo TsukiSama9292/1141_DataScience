@@ -1,6 +1,6 @@
 """
-實驗10: 20M資料, SVD=150維, KNN=20
-目的: 測試更高維度SVD
+實驗10: 20M資料, SVD=200維, KNN=20
+目的: 測試高維度SVD的過擬合風險
 """
 
 import sys
@@ -18,7 +18,7 @@ def main():
         use_timestamp=False,
         use_item_bias=False,
         use_svd=True,
-        n_components=150,
+        n_components=200,
         k_neighbors=20,
         n_samples=500,
         top_n=10,

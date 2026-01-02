@@ -1,6 +1,6 @@
 """
-實驗14: 20M資料, SVD=128維, KNN=30
-目的: 測試中等鄰居數
+實驗14: 20M資料, SVD=128維, KNN=40
+目的: 測試中高等鄰居數
 """
 
 import sys
@@ -19,7 +19,7 @@ def main():
         use_item_bias=False,
         use_svd=True,
         n_components=128,
-        k_neighbors=30,
+        k_neighbors=40,
         n_samples=500,
         top_n=10,
         random_state=42

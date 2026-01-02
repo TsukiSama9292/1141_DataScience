@@ -172,55 +172,94 @@ class Evaluator:
         ndcg_scores = []
         squared_errors = []
         absolute_errors = []
-        
         valid_samples = 0
-        
-        for u_idx in test_users:
-            user_row = train_matrix[u_idx]
-            watched_items = user_row.indices
-            watched_ratings = user_row.data
-            
-            if len(watched_items) < 5:
-                continue
-            
-            valid_samples += 1
-            
-            # Leave-One-Out: target is highest rated item
-            target_idx_in_row = np.argmax(watched_ratings)
-            target_movie_idx = watched_items[target_idx_in_row]
-            true_rating = watched_ratings[target_idx_in_row]
-            
-            # Predict rating
-            pred_rating = recommender.predict_rating(
-                u_idx, target_movie_idx, train_matrix, user_features,
-                item_means, global_mean
-            )
-            
-            squared_errors.append((true_rating - pred_rating) ** 2)
-            absolute_errors.append(abs(true_rating - pred_rating))
-            
-            # Generate recommendations
-            recommended = recommender.recommend_items(
-                u_idx, train_matrix, user_features,
-                top_n=top_n, target_item=target_movie_idx
-            )
-            
-            # Calculate ranking metrics
-            if target_movie_idx in recommended:
-                hits += 1
-                rank = recommended.index(target_movie_idx) + 1
-                
-                # MRR: 1 / rank (第一個相關項目的排名倒數)
-                reciprocal_ranks.append(1.0 / rank)
-                
-                # NDCG for single relevant item:
-                # DCG = 1.0 / log2(rank + 1)
-                # IDCG = 1.0 / log2(2) = 1.0 (最理想位置是第1位)
-                # NDCG = DCG / IDCG = 1.0 / log2(rank + 1)
-                ndcg_scores.append(1.0 / np.log2(rank + 1))
-            else:
-                reciprocal_ranks.append(0.0)
-                ndcg_scores.append(0.0)
+
+        # Process test users in batches to reduce repeated neighbor computations
+        batch_size = 256
+        n = len(test_users)
+        for start in range(0, n, batch_size):
+            batch = test_users[start:start + batch_size]
+
+            # If the recommender has a fitted NearestNeighbors instance and
+            # no global neighbor cache, compute neighbors for this batch in one call.
+            use_batch_knn = getattr(recommender, 'knn', None) is not None and getattr(recommender, '_neighbor_indices_all', None) is None
+            batch_neighbors = None
+            batch_sims = None
+            if use_batch_knn:
+                try:
+                    qvecs = user_features[batch]
+                    distances, indices = recommender.knn.kneighbors(qvecs, n_neighbors=recommender.n_neighbors + 1)
+                    # remove self
+                    batch_neighbors = indices[:, 1:]
+                    batch_sims = 1.0 - distances[:, 1:]
+                except Exception:
+                    batch_neighbors = None
+                    batch_sims = None
+
+            for i, u_idx in enumerate(batch):
+                user_row = train_matrix[u_idx]
+                watched_items = user_row.indices
+                watched_ratings = user_row.data
+
+                if len(watched_items) < 5:
+                    continue
+
+                valid_samples += 1
+
+                # Leave-One-Out: target is highest rated item
+                target_idx_in_row = np.argmax(watched_ratings)
+                target_movie_idx = watched_items[target_idx_in_row]
+                true_rating = watched_ratings[target_idx_in_row]
+
+                # Determine neighbors for this user (use batch precompute or recommender.find_neighbors)
+                if batch_neighbors is not None:
+                    neigh_inds = batch_neighbors[i]
+                    neigh_sims = batch_sims[i]
+                else:
+                    neigh_inds, neigh_sims = recommender.find_neighbors(u_idx, user_features)
+
+                # Predict rating using neighbors
+                neighbor_ratings = []
+                neighbor_weights = []
+                for n_idx, sim in zip(neigh_inds, neigh_sims):
+                    n_row = train_matrix[n_idx]
+                    if target_movie_idx in n_row.indices:
+                        idx_loc = np.where(n_row.indices == target_movie_idx)[0][0]
+                        r = n_row.data[idx_loc]
+                        neighbor_ratings.append(r)
+                        neighbor_weights.append(sim)
+
+                if neighbor_weights:
+                    pred_rating = np.average(neighbor_ratings, weights=neighbor_weights)
+                elif item_means and target_movie_idx in item_means:
+                    pred_rating = item_means[target_movie_idx]
+                else:
+                    pred_rating = global_mean
+
+                squared_errors.append((true_rating - pred_rating) ** 2)
+                absolute_errors.append(abs(true_rating - pred_rating))
+
+                # Generate recommendations using neighbors
+                watched_set = set(watched_items)
+                candidate_scores = {}
+                for n_idx, sim in zip(neigh_inds, neigh_sims):
+                    n_row = train_matrix[n_idx]
+                    for m_idx, r in zip(n_row.indices, n_row.data):
+                        if m_idx in watched_set and m_idx != target_movie_idx:
+                            continue
+                        candidate_scores[m_idx] = candidate_scores.get(m_idx, 0.0) + sim * r
+
+                recommended = [item for item, _ in sorted(candidate_scores.items(), key=lambda x: x[1], reverse=True)[:top_n]]
+
+                # Calculate ranking metrics
+                if target_movie_idx in recommended:
+                    hits += 1
+                    rank = recommended.index(target_movie_idx) + 1
+                    reciprocal_ranks.append(1.0 / rank)
+                    ndcg_scores.append(1.0 / np.log2(rank + 1))
+                else:
+                    reciprocal_ranks.append(0.0)
+                    ndcg_scores.append(0.0)
         
         # Aggregate results
         hit_rate = hits / valid_samples if valid_samples > 0 else 0.0
