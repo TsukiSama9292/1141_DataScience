@@ -1,0 +1,9 @@
+{
+  "best_config": "KNN_004",
+  "best_k_neighbors": 40,
+  "metrics": {
+    "hit_rate": 0.676,
+    "ndcg": 0.5302192963245245,
+    "rmse": 0.9730391490020232
+  }
+}

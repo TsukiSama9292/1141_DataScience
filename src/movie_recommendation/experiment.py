@@ -6,7 +6,8 @@ import time
 import numpy as np
 from typing import Optional, Dict
 import logging
-
+import inspect
+from pathlib import Path
 from .data_loader import DataLoader
 from .feature_engineering import FeatureEngineer
 from .models import KNNRecommender
@@ -21,8 +22,8 @@ class ExperimentConfig:
     
     def __init__(
         self,
-        name: str,
         data_limit: Optional[int] = None,
+        min_item_ratings: int = 0,
         use_timestamp: bool = False,
         use_item_bias: bool = False,
         use_svd: bool = False,
@@ -40,8 +41,8 @@ class ExperimentConfig:
         Initialize experiment configuration.
         
         Args:
-            name: Experiment name for logging
             data_limit: Limit on number of ratings (None for full dataset)
+            min_item_ratings: Minimum number of ratings per item (0 = no filtering)
             use_timestamp: Whether to load timestamp data
             use_item_bias: Whether to calculate item bias
             use_svd: Whether to apply SVD dimensionality reduction
@@ -55,8 +56,8 @@ class ExperimentConfig:
             top_n: Number of recommendations to generate
             random_state: Random seed for reproducibility
         """
-        self.name = name
         self.data_limit = data_limit
+        self.min_item_ratings = min_item_ratings
         self.use_timestamp = use_timestamp
         self.use_item_bias = use_item_bias
         self.use_svd = use_svd
@@ -74,15 +75,27 @@ class ExperimentConfig:
 class Experiment:
     """Run a complete recommendation experiment."""
     
-    def __init__(self, config: ExperimentConfig):
+    def __init__(self, config: ExperimentConfig, config_name: Optional[str] = None):
         """
         Initialize experiment.
         
         Args:
             config: Experiment configuration
+            config_name: Optional name for logging (auto-detected if None)
         """
         self.config = config
-        self.logger = setup_logging(config.name, log_dir="log")
+        
+        # Auto-detect config name from calling script filename
+        if config_name is None:
+            frame = inspect.currentframe()
+            if frame and frame.f_back and frame.f_back.f_back:
+                caller_file = frame.f_back.f_back.f_code.co_filename
+                config_name = Path(caller_file).stem
+            else:
+                config_name = "experiment"
+        
+        self.config_name = config_name
+        self.logger = setup_logging(config_name, log_dir="log")
         self.tracker = TimeTracker()
         self.time_records = {}
         
@@ -114,7 +127,7 @@ class Experiment:
         Returns:
             Dictionary of evaluation metrics
         """
-        self.logger.info(f"開始實驗: {self.config.name}")
+        self.logger.info(f"開始配置: {self.config_name}")
         
         self.tracker.start()
         
@@ -123,7 +136,7 @@ class Experiment:
         if self.config.use_timestamp:
             movies, ratings = self.data_loader.load_with_timestamp(self.config.data_limit)
         else:
-            movies, ratings = self.data_loader.load_data(self.config.data_limit)
+            movies, ratings = self.data_loader.load_data(self.config.data_limit, self.config.min_item_ratings)
         self.tracker.sample_memory()
         self._log_time("載入資料", stage_start)
         
@@ -247,6 +260,6 @@ class Experiment:
             peak_memory
         )
         
-        self.logger.info(f"實驗完成: {self.config.name}")
+        self.logger.info(f"配置完成: {self.config_name}")
         
         return metrics

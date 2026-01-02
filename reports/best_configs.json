@@ -1,0 +1,20 @@
+{
+  "svd": {
+    "best_config": "SVD_008",
+    "best_n_components": 200,
+    "metrics": {
+      "hit_rate": 0.688,
+      "ndcg": 0.5398845385246288,
+      "rmse": 0.957231993285347
+    }
+  },
+  "knn": {
+    "best_config": "KNN_004",
+    "best_k_neighbors": 40,
+    "metrics": {
+      "hit_rate": 0.676,
+      "ndcg": 0.5302192963245245,
+      "rmse": 0.9730391490020232
+    }
+  }
+}

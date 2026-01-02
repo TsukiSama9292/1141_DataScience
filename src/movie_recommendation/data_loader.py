@@ -26,12 +26,13 @@ class DataLoader:
         self.movies = None
         self.ratings = None
         
-    def load_data(self, limit: Optional[int] = None) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    def load_data(self, limit: Optional[int] = None, min_item_ratings: int = 0) -> Tuple[pd.DataFrame, pd.DataFrame]:
         """
         Load MovieLens dataset.
         
         Args:
             limit: Optional limit on number of ratings to load
+            min_item_ratings: Minimum number of ratings per item (0 = no filtering)
             
         Returns:
             Tuple of (movies, ratings) DataFrames
@@ -46,6 +47,10 @@ class DataLoader:
             self.ratings = ratings_full[["userId", "movieId", "rating"]].iloc[:limit]
         else:
             self.ratings = pd.read_csv(f"{self.path}/rating.csv")[["userId", "movieId", "rating"]]
+        
+        # 過濾長尾電影
+        if min_item_ratings > 0:
+            self.ratings = self.filter_cold_items(self.ratings, min_item_ratings)
         
         logger.info(f"載入完成: {len(self.movies)} 部電影, {len(self.ratings)} 筆評分")
         return self.movies, self.ratings
@@ -124,3 +129,37 @@ class DataLoader:
         
         logger.info(f"計算 Item Bias: 全局平均 = {global_mean:.4f}")
         return item_means, global_mean
+    
+    def filter_cold_items(
+        self,
+        ratings: pd.DataFrame,
+        min_item_ratings: int = 10
+    ) -> pd.DataFrame:
+        """
+        過濾評分數不足的電影（長尾電影）
+        
+        Args:
+            ratings: 評分資料
+            min_item_ratings: 電影最少評分數閾值
+            
+        Returns:
+            過濾後的評分資料
+        """
+        if min_item_ratings <= 0:
+            return ratings
+        
+        item_counts = ratings.groupby('movieId').size()
+        valid_items = item_counts[item_counts >= min_item_ratings].index
+        filtered_ratings = ratings[ratings['movieId'].isin(valid_items)]
+        
+        removed_items = len(item_counts) - len(valid_items)
+        removed_ratings = len(ratings) - len(filtered_ratings)
+        
+        logger.info(
+            f"電影過濾: 移除 {removed_items} 部電影 "
+            f"({removed_items/len(item_counts)*100:.2f}%), "
+            f"{removed_ratings:,} 筆評分 "
+            f"({removed_ratings/len(ratings)*100:.2f}%)"
+        )
+        
+        return filtered_ratings
