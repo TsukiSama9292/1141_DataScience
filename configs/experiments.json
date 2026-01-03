@@ -1071,7 +1071,7 @@
     "SVD_KNN_EXPAND": {
       "name": "SVD×KNN 網格搜索",
       "description": "同時測試所有 SVD 和 KNN 組合，找出最佳配對",
-      "enabled": true,
+      "enabled": false,
       "base_config": {
         "data_limit": null,
         "min_item_ratings": 0,

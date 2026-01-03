@@ -259,7 +259,7 @@ class ExperimentAnalyzer:
         summary = []
         
         # 移除 DS 階段，因為它測試的是資料量而非超參數
-        for stage_name in ['FILTER', 'KNN_BASELINE', 'SVD_KNN_GRID', 'SVD_KNN_EXPAND', 'BIAS', 'OPT']:
+        for stage_name in ['FILTER', 'KNN_BASELINE', 'SVD_KNN_GRID', 'BIAS', 'OPT']:
             # SVD_KNN_GRID 和 SVD_KNN_EXPAND 特殊處理
             if stage_name in ['SVD_KNN_GRID', 'SVD_KNN_EXPAND']:
                 # 載入所有結果

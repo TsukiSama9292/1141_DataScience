@@ -1,0 +1,39 @@
+{
+  "name": "BIAS_002",
+  "n_samples": 20000,
+  "metrics": {
+    "n_samples": 20000.0,
+    "hit_rate": 0.67745,
+    "precision": 0.067745,
+    "recall": 0.67745,
+    "mrr": 0.49207952380952374,
+    "ndcg": 0.5363363241784871,
+    "rmse": 0.9596996921383064,
+    "mae": 0.8484980609418421
+  },
+  "time_records": {
+    "載入資料": 5.895733594894409,
+    "建立映射": 0.5007951259613037,
+    "計算 Item Bias": 0.1717081069946289,
+    "建立稀疏矩陣": 0.12165284156799316,
+    "SVD 降維": 92.35751461982727,
+    "訓練 KNN": 0.05385637283325195,
+    "評估": 118.89406371116638
+  },
+  "peak_memory_mb": 4063.6171875,
+  "config": {
+    "data_limit": null,
+    "min_item_ratings": 0,
+    "use_timestamp": false,
+    "use_item_bias": true,
+    "use_svd": true,
+    "n_components": 1024,
+    "use_time_decay": false,
+    "half_life_days": 500,
+    "use_tfidf": false,
+    "k_neighbors": 40,
+    "amplification_factor": 1.0,
+    "top_n": 10,
+    "random_state": 42
+  }
+}

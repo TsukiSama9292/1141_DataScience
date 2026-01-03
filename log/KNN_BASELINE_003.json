@@ -1,0 +1,37 @@
+{
+  "name": "KNN_BASELINE_003",
+  "n_samples": 20000,
+  "metrics": {
+    "n_samples": 20000.0,
+    "hit_rate": 0.66935,
+    "precision": 0.066935,
+    "recall": 0.66935,
+    "mrr": 0.47318533730158735,
+    "ndcg": 0.5199980926839267,
+    "rmse": 0.9700286247662974,
+    "mae": 0.8361897189124132
+  },
+  "time_records": {
+    "載入資料": 5.671370267868042,
+    "建立映射": 0.4531886577606201,
+    "建立稀疏矩陣": 0.1204836368560791,
+    "訓練 KNN": 0.058461904525756836,
+    "評估": 76.09559369087219
+  },
+  "peak_memory_mb": 2814.875,
+  "config": {
+    "data_limit": null,
+    "min_item_ratings": 0,
+    "use_timestamp": false,
+    "use_item_bias": false,
+    "use_svd": false,
+    "n_components": 50,
+    "use_time_decay": false,
+    "half_life_days": 500,
+    "use_tfidf": false,
+    "k_neighbors": 15,
+    "amplification_factor": 1.0,
+    "top_n": 10,
+    "random_state": 42
+  }
+}

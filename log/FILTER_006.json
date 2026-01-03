@@ -1,0 +1,37 @@
+{
+  "name": "FILTER_006",
+  "n_samples": 20000,
+  "metrics": {
+    "n_samples": 20000.0,
+    "hit_rate": 0.67195,
+    "precision": 0.067195,
+    "recall": 0.67195,
+    "mrr": 0.4807865873015873,
+    "ndcg": 0.5264736629413819,
+    "rmse": 0.9629578264024395,
+    "mae": 0.8376650215353595
+  },
+  "time_records": {
+    "載入資料": 5.957796573638916,
+    "建立映射": 0.4307820796966553,
+    "建立稀疏矩陣": 0.12190794944763184,
+    "訓練 KNN": 0.055891990661621094,
+    "評估": 80.83157014846802
+  },
+  "peak_memory_mb": 2867.265625,
+  "config": {
+    "data_limit": null,
+    "min_item_ratings": 100,
+    "use_timestamp": false,
+    "use_item_bias": false,
+    "use_svd": false,
+    "n_components": 50,
+    "use_time_decay": false,
+    "half_life_days": 500,
+    "use_tfidf": false,
+    "k_neighbors": 20,
+    "amplification_factor": 1.0,
+    "top_n": 10,
+    "random_state": 42
+  }
+}

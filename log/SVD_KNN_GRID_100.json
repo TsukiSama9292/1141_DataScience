@@ -1,0 +1,38 @@
+{
+  "name": "SVD_KNN_GRID_100",
+  "n_samples": 20000,
+  "metrics": {
+    "n_samples": 20000.0,
+    "hit_rate": 0.67595,
+    "precision": 0.067595,
+    "recall": 0.67595,
+    "mrr": 0.4911591468253968,
+    "ndcg": 0.5352865893462225,
+    "rmse": 0.9575705689943584,
+    "mae": 0.8516119138336155
+  },
+  "time_records": {
+    "載入資料": 5.68332314491272,
+    "建立映射": 0.4444618225097656,
+    "建立稀疏矩陣": 0.12296938896179199,
+    "SVD 降維": 90.76421308517456,
+    "訓練 KNN": 0.057102203369140625,
+    "評估": 128.45046997070312
+  },
+  "peak_memory_mb": 4520.6875,
+  "config": {
+    "data_limit": null,
+    "min_item_ratings": 0,
+    "use_timestamp": false,
+    "use_item_bias": false,
+    "use_svd": true,
+    "n_components": 1024,
+    "use_time_decay": false,
+    "half_life_days": 500,
+    "use_tfidf": false,
+    "k_neighbors": 50,
+    "amplification_factor": 1.0,
+    "top_n": 10,
+    "random_state": 42
+  }
+}
