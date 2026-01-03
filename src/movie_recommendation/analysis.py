@@ -31,10 +31,12 @@ class ExperimentAnalyzer:
             'DS': ['DS_001', 'DS_002', 'DS_003', 'DS_004'],
             'FILTER': ['FILTER_001', 'FILTER_002', 'FILTER_003', 
                       'FILTER_004', 'FILTER_005', 'FILTER_006'],
+            'KNN_BASELINE': [f'KNN_BASELINE_{i:03d}' for i in range(1, 11)],
             'SVD': [f'SVD_{i:03d}' for i in range(1, 16)],
             'KNN': [f'KNN_{i:03d}' for i in range(1, 8)],
-            'BIAS': ['BIAS_001', 'BIAS_002', 'BIAS_003'],
-            'OPT': ['OPT_001', 'OPT_003']
+            'SVD_KNN_EXPAND': [f'SVD_KNN_EXPAND_{i:03d}' for i in range(1, 37)],
+            'BIAS': ['BIAS_001', 'BIAS_002'],
+            'OPT': ['OPT_001', 'OPT_002']
         }
     
     def load_result(self, config_name: str) -> Optional[Dict[str, Any]]:
@@ -257,14 +259,15 @@ class ExperimentAnalyzer:
         summary = []
         
         # 移除 DS 階段，因為它測試的是資料量而非超參數
-        for stage_name in ['FILTER', 'KNN_BASELINE', 'SVD_KNN_GRID', 'BIAS', 'OPT']:
-            # SVD_KNN_GRID 特殊處理
-            if stage_name == 'SVD_KNN_GRID':
-                # 載入所有 SVD_KNN_GRID 結果
+        for stage_name in ['FILTER', 'KNN_BASELINE', 'SVD_KNN_GRID', 'SVD_KNN_EXPAND', 'BIAS', 'OPT']:
+            # SVD_KNN_GRID 和 SVD_KNN_EXPAND 特殊處理
+            if stage_name in ['SVD_KNN_GRID', 'SVD_KNN_EXPAND']:
+                # 載入所有結果
                 log_dir = Path(self.log_dir)
                 grid_results = []
-                for i in range(1, 31):
-                    config_name = f'SVD_KNN_GRID_{i:03d}'
+                max_exp = 101 if stage_name == 'SVD_KNN_GRID' else 37
+                for i in range(1, max_exp):
+                    config_name = f'{stage_name}_{i:03d}'
                     json_file = log_dir / f'{config_name}.json'
                     if json_file.exists():
                         try:

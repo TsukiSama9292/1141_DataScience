@@ -187,7 +187,7 @@ class ExperimentRunner:
         for exp_spec in experiments:
             result = self.load_experiment_result(exp_spec.id)
             if result and 'metrics' in result:
-                hit_rate = result['metrics'].get('hit_rate@10', 0)
+                hit_rate = result['metrics'].get('hit_rate', 0)  # 修正：使用 'hit_rate' 而非 'hit_rate@10'
                 if hit_rate > best_hit_rate:
                     best_hit_rate = hit_rate
                     best_exp = exp_spec
@@ -214,20 +214,36 @@ class ExperimentRunner:
                     config_updates['n_components'] = best_exp.config.get('n_components')
                     logger.info(f"   → SVD: n_components={config_updates['n_components']}")
             
+            elif completed_stage == 'KNN_BASELINE':
+                # KNN_BASELINE階段：不級聯，這是純KNN基準測試
+                # 用於與 SVD+KNN 對比，不應影響後續階段
+                logger.info(f"   → KNN Baseline: k_neighbors={best_exp.config.get('k_neighbors')} (不級聯)")
+                return  # 直接返回，不更新後續階段
+            
             elif completed_stage.startswith('KNN'):
-                # KNN階段：提取最佳KNN配置
+                # 其他KNN階段：提取最佳KNN配置
                 config_updates['k_neighbors'] = best_exp.config.get('k_neighbors')
                 logger.info(f"   → KNN: k_neighbors={config_updates['k_neighbors']}")
             
             elif completed_stage == 'FILTER':
-                # FILTER階段：提取最佳過濾參數
-                config_updates['min_item_ratings'] = best_exp.config.get('min_item_ratings', 0)
-                logger.info(f"   → Filter: min_item_ratings={config_updates['min_item_ratings']}")
+                # FILTER階段：不級聯，因為過濾會改變數據分佈
+                # 這是數據預處理選項，應該獨立測試
+                logger.info(f"   → Filter: min_item_ratings={best_exp.config.get('min_item_ratings', 0)} (不級聯)")
+                return  # 直接返回，不更新後續階段
             
             elif completed_stage == 'BIAS':
                 # BIAS階段：提取最佳偏差配置
                 config_updates['use_item_bias'] = best_exp.config.get('use_item_bias', False)
                 logger.info(f"   → Bias: use_item_bias={config_updates['use_item_bias']}")
+            
+            elif completed_stage == 'OPT':
+                # OPT階段：提取最佳優化配置
+                config_updates['use_time_decay'] = best_exp.config.get('use_time_decay', False)
+                config_updates['half_life_days'] = best_exp.config.get('half_life_days', 500)
+                config_updates['use_tfidf'] = best_exp.config.get('use_tfidf', False)
+                logger.info(f"   → Optimization: use_time_decay={config_updates['use_time_decay']}, "
+                           f"half_life_days={config_updates['half_life_days']}, "
+                           f"use_tfidf={config_updates['use_tfidf']}")
             
             # 注意：不再處理 DS 階段，因為 data_limit 不應該被級聯
             
@@ -245,10 +261,10 @@ class ExperimentRunner:
             completed_stage: 已完成的階段
             config_updates: 要更新的配置
         """
-        # 定義階段順序和依賴關係（不包含 DS，因為 data_limit 不應級聯）
+        # 定義階段順序和依賴關係
+        # 注意：FILTER 和 KNN_BASELINE 不級聯，因為它們是獨立的基準測試
+        # DS 不級聯因為 data_limit 不應影響後續階段
         stage_order = {
-            'FILTER': ['KNN_BASELINE', 'SVD_KNN_GRID', 'BIAS', 'OPT', 'VALIDATE'],
-            'KNN_BASELINE': ['SVD_KNN_GRID', 'BIAS', 'OPT', 'VALIDATE'],
             'SVD_KNN_GRID': ['BIAS', 'OPT', 'VALIDATE'],
             'BIAS': ['OPT', 'VALIDATE'],
             'OPT': ['VALIDATE']
@@ -266,6 +282,11 @@ class ExperimentRunner:
             if stage in self.config_loader.get_stages():
                 self.config_loader.update_stage_base_config(stage, config_updates)
                 logger.info(f"   ✓ 已更新 {stage}")
+        
+        # 保存更新後的配置到檔案
+        if subsequent_stages:
+            self.config_loader.save()
+            logger.info(f"💾 已保存配置檔案")
     
     def run_all(
         self,

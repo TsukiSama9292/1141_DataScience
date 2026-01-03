@@ -77,7 +77,9 @@ def update_config_with_grid(
     config_path: Path,
     svd_values: List[int] = None,
     knn_values: List[int] = None,
-    remove_old_stages: bool = True
+    remove_old_stages: bool = True,
+    stage_id: str = "SVD_KNN_GRID",
+    insert_after: str = "FILTER"
 ):
     """
     更新配置檔案，添加網格搜索階段
@@ -87,6 +89,8 @@ def update_config_with_grid(
         svd_values: SVD 維度列表
         knn_values: KNN 鄰居數列表
         remove_old_stages: 是否移除舊的 SVD_COARSE 和 KNN_COARSE 階段
+        stage_id: 階段 ID（預設: SVD_KNN_GRID）
+        insert_after: 在此階段之後插入（預設: FILTER）
     """
     # 預設值：SVD 使用 2^n (n=1..10)，KNN 使用 5*n (n=1..10)
     if svd_values is None:
@@ -99,7 +103,7 @@ def update_config_with_grid(
         config = json.load(f)
     
     # 生成網格搜索配置
-    grid_stage = generate_grid_experiments(svd_values, knn_values)
+    grid_stage = generate_grid_experiments(svd_values, knn_values, stage_id=stage_id)
     
     # 移除舊階段
     if remove_old_stages:
@@ -109,23 +113,23 @@ def update_config_with_grid(
                 del config['stages'][stage]
                 print(f"✓ 已移除階段: {stage}")
     
-    # 添加或更新網格搜索階段（在 FILTER 之後）
+    # 添加或更新網格搜索階段
     new_stages = {}
     grid_added = False
     for key, value in config['stages'].items():
-        if key == 'SVD_KNN_GRID':
-            # 跳過舊的 SVD_KNN_GRID，稍後會添加新的
+        if key == stage_id:
+            # 跳過舊的同名階段，稍後會添加新的
             continue
         new_stages[key] = value
-        if key == 'FILTER':
-            new_stages['SVD_KNN_GRID'] = grid_stage
+        if key == insert_after:
+            new_stages[stage_id] = grid_stage
             grid_added = True
-            print(f"✓ 已添加/更新階段: SVD_KNN_GRID（{len(grid_stage['experiments'])} 個實驗）")
+            print(f"✓ 已添加/更新階段: {stage_id}（{len(grid_stage['experiments'])} 個實驗）")
     
-    # 如果沒有 FILTER 階段，直接添加到最後
+    # 如果沒有指定的插入位置，直接添加到最後
     if not grid_added:
-        new_stages['SVD_KNN_GRID'] = grid_stage
-        print(f"✓ 已添加階段: SVD_KNN_GRID（{len(grid_stage['experiments'])} 個實驗）")
+        new_stages[stage_id] = grid_stage
+        print(f"✓ 已添加階段: {stage_id}（{len(grid_stage['experiments'])} 個實驗）")
     
     config['stages'] = new_stages
     
@@ -189,6 +193,18 @@ if __name__ == "__main__":
         action='store_true',
         help='保留舊的 SVD_COARSE 和 KNN_COARSE 階段'
     )
+    parser.add_argument(
+        '--stage-id',
+        type=str,
+        default='SVD_KNN_GRID',
+        help='階段 ID（預設: SVD_KNN_GRID）'
+    )
+    parser.add_argument(
+        '--insert-after',
+        type=str,
+        default='FILTER',
+        help='在此階段之後插入（預設: FILTER）'
+    )
     
     args = parser.parse_args()
     
@@ -212,7 +228,9 @@ if __name__ == "__main__":
                 config_path,
                 args.svd,
                 args.knn,
-                remove_old_stages=not args.keep_old
+                remove_old_stages=not args.keep_old,
+                stage_id=args.stage_id,
+                insert_after=args.insert_after
             )
         else:
             print("❌ 已取消")

@@ -44,14 +44,8 @@ class ReportGenerator:
         log_dir = Path('log')
         grid_results = []
         
-        # 載入所有 SVD_KNN_GRID 結果
-        # 編號 1-5: SVD=32, K=8,16,32,64,128
-        # 編號 6-10: SVD=64, K=8,16,32,64,128
-        # 編號 11-15: SVD=128, K=8,16,32,64,128
-        # 編號 16-20: SVD=256, K=8,16,32,64,128
-        # 編號 21-25: SVD=512, K=8,16,32,64,128
-        # 編號 26-30: SVD=1024, K=8,16,32,64,128
-        for i in range(1, 31):  # SVD_KNN_GRID_001 到 SVD_KNN_GRID_030
+        # 載入所有 SVD_KNN_GRID 結果 (1-100)
+        for i in range(1, 101):
             config_name = f'SVD_KNN_GRID_{i:03d}'
             json_file = log_dir / f'{config_name}.json'
             
@@ -60,14 +54,14 @@ class ReportGenerator:
                     with open(json_file, 'r') as f:
                         data = json.load(f)
                     
-                    # 從配置文件或結果中提取參數
-                    # 根據編號計算 n_components 和 k_neighbors
-                    idx = i - 1
-                    svd_idx = idx // 5  # 0, 1, 2, 3, 4, 5
-                    k_idx = idx % 5     # 0, 1, 2, 3, 4
+                    # 從配置中讀取實際的參數值
+                    config = data.get('config', {})
+                    n_components = config.get('n_components')
+                    k_neighbors = config.get('k_neighbors')
                     
-                    n_components = 32 * (2 ** svd_idx)  # 32, 64, 128, 256, 512, 1024
-                    k_neighbors = 8 * (2 ** k_idx)      # 8, 16, 32, 64, 128
+                    # 跳過無效配置
+                    if n_components is None or k_neighbors is None:
+                        continue
                     
                     metrics = data.get('metrics', {})
                     time_records = data.get('time_records', {})
@@ -86,6 +80,47 @@ class ReportGenerator:
         
         return grid_results
     
+    def _load_expand_results(self):
+        """載入 SVD_KNN_EXPAND 網格搜索結果"""
+        log_dir = Path('log')
+        expand_results = []
+        
+        # 載入所有 SVD_KNN_EXPAND 結果 (1-36)
+        for i in range(1, 37):
+            config_name = f'SVD_KNN_EXPAND_{i:03d}'
+            json_file = log_dir / f'{config_name}.json'
+            
+            if json_file.exists():
+                try:
+                    with open(json_file, 'r') as f:
+                        data = json.load(f)
+                    
+                    # 從配置中讀取實際的參數值
+                    config = data.get('config', {})
+                    n_components = config.get('n_components')
+                    k_neighbors = config.get('k_neighbors')
+                    
+                    # 跳過無效配置
+                    if n_components is None or k_neighbors is None:
+                        continue
+                    
+                    metrics = data.get('metrics', {})
+                    time_records = data.get('time_records', {})
+                    
+                    expand_results.append({
+                        'config_name': config_name,
+                        'n_components': n_components,
+                        'k_neighbors': k_neighbors,
+                        'hit_rate': metrics.get('hit_rate', 0),
+                        'ndcg': metrics.get('ndcg', 0),
+                        'rmse': metrics.get('rmse', 0),
+                        'total_time': sum(time_records.values()) if time_records else 0
+                    })
+                except Exception as e:
+                    print(f"⚠️ 無法讀取 {json_file}: {e}")
+        
+        return expand_results
+    
     def _load_knn_baseline_results(self):
         """載入 KNN_BASELINE 純KNN基準線結果"""
         log_dir = Path('log')
@@ -101,8 +136,9 @@ class ReportGenerator:
                     with open(json_file, 'r') as f:
                         data = json.load(f)
                     
-                    # 提取 k_neighbors 值：5, 10, 15, ..., 50
-                    k_neighbors = 5 * i
+                    # 從配置中讀取實際的 k_neighbors 值
+                    config = data.get('config', {})
+                    k_neighbors = config.get('k_neighbors', 5 * i)  # fallback to 5*i
                     
                     metrics = data.get('metrics', {})
                     time_records = data.get('time_records', {})
@@ -157,6 +193,7 @@ class ReportGenerator:
         ax1.set_xlabel('SVD Dimension', fontsize=12)
         ax1.set_ylabel('Hit Rate@10', fontsize=12)
         ax1.set_title('Hit Rate@10 vs SVD Dimension', fontsize=14, fontweight='bold')
+        ax1.set_xscale('log', base=2)  # 使用對數刻度，因為維度是 2^N
         ax1.grid(True, alpha=0.3)
         
         if hit_rates:
@@ -173,6 +210,7 @@ class ReportGenerator:
         ax2.set_xlabel('SVD Dimension', fontsize=12)
         ax2.set_ylabel('NDCG@10', fontsize=12)
         ax2.set_title('NDCG@10 vs SVD Dimension', fontsize=14, fontweight='bold')
+        ax2.set_xscale('log', base=2)  # 使用對數刻度
         ax2.grid(True, alpha=0.3)
         
         # 3. RMSE vs Dimension
@@ -180,6 +218,7 @@ class ReportGenerator:
         ax3.set_xlabel('SVD Dimension', fontsize=12)
         ax3.set_ylabel('RMSE', fontsize=12)
         ax3.set_title('RMSE vs SVD Dimension', fontsize=14, fontweight='bold')
+        ax3.set_xscale('log', base=2)  # 使用對數刻度
         ax3.grid(True, alpha=0.3)
         
         # 4. Execution Time vs Dimension
@@ -187,6 +226,7 @@ class ReportGenerator:
         ax4.set_xlabel('SVD Dimension', fontsize=12)
         ax4.set_ylabel('Execution Time (seconds)', fontsize=12)
         ax4.set_title('Execution Time vs SVD Dimension', fontsize=14, fontweight='bold')
+        ax4.set_xscale('log', base=2)  # 使用對數刻度
         ax4.grid(True, alpha=0.3)
         
         plt.tight_layout()
@@ -278,16 +318,42 @@ class ReportGenerator:
     
     def generate_comparison_plot(self) -> bool:
         """生成階段對比圖"""
-        # 找出最佳的 SVD_KNN_GRID 配置
-        grid_results = self._load_grid_results()
-        best_grid_config = None
-        if grid_results:
-            best_grid_config = max(grid_results, key=lambda x: x['hit_rate'])['config_name']
+        # 找出各階段的最佳配置
+        stages = {}
         
-        stages = {
-            'FILTER': 'FILTER_001',
-            'SVD_KNN': best_grid_config or 'SVD_KNN_GRID_001',
-        }
+        # 輔助函數：找出階段最佳配置
+        def find_best_in_stage(stage_name: str):
+            results = self.analyzer.load_stage_results(stage_name)
+            if results:
+                best = max(results, key=lambda x: x['data'].get('metrics', {}).get('hit_rate', 0))
+                return best['config_name']
+            return None
+        
+        # FILTER 最佳
+        filter_best = find_best_in_stage('FILTER')
+        if filter_best:
+            stages['FILTER'] = filter_best
+        
+        # KNN_BASELINE 最佳
+        knn_baseline_best = find_best_in_stage('KNN_BASELINE')
+        if knn_baseline_best:
+            stages['KNN_BASELINE'] = knn_baseline_best
+        
+        # SVD_KNN_GRID 最佳
+        grid_results = self._load_grid_results()
+        if grid_results:
+            best_grid = max(grid_results, key=lambda x: x['hit_rate'])
+            stages['SVD_KNN_GRID'] = best_grid['config_name']
+        
+        # BIAS 最佳
+        bias_best = find_best_in_stage('BIAS')
+        if bias_best:
+            stages['BIAS'] = bias_best
+        
+        # OPT 最佳
+        opt_best = find_best_in_stage('OPT')
+        if opt_best:
+            stages['OPT'] = opt_best
         
         stage_data = {}
         for stage, config in stages.items():
@@ -459,6 +525,85 @@ class ReportGenerator:
             print(f"   ⚠️  KNN K值仍在改善，建議測試更大的 K 值（如 128, 256）")
         else:
             print(f"   ✅ KNN K值已達收斂，當前範圍已足夠")
+        
+        return True
+    
+    def generate_expand_heatmap(self) -> bool:
+        """生成 SVD_KNN_EXPAND 擴展網格搜索熱圖"""
+        expand_results = self._load_expand_results()
+        
+        if not expand_results:
+            print("⚠️ SVD_KNN_EXPAND 結果不足，跳過熱圖生成")
+            return False
+        
+        # 準備數據矩陣
+        svd_dims = sorted(set(r['n_components'] for r in expand_results))
+        k_values = sorted(set(r['k_neighbors'] for r in expand_results))
+        
+        # 創建熱圖數據
+        hit_rate_matrix = np.zeros((len(svd_dims), len(k_values)))
+        ndcg_matrix = np.zeros((len(svd_dims), len(k_values)))
+        
+        for result in expand_results:
+            i = svd_dims.index(result['n_components'])
+            j = k_values.index(result['k_neighbors'])
+            hit_rate_matrix[i, j] = result['hit_rate']
+            ndcg_matrix[i, j] = result['ndcg']
+        
+        # 創建圖表
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(20, 8))
+        fig.suptitle('SVD × KNN Expand Grid Search Heatmap', fontsize=16, fontweight='bold')
+        
+        # Hit Rate 熱圖
+        im1 = ax1.imshow(hit_rate_matrix, cmap='YlOrRd', aspect='auto')
+        ax1.set_xticks(range(len(k_values)))
+        ax1.set_yticks(range(len(svd_dims)))
+        ax1.set_xticklabels(k_values)
+        ax1.set_yticklabels(svd_dims)
+        ax1.set_xlabel('K (Number of Neighbors)', fontsize=12)
+        ax1.set_ylabel('SVD Dimension', fontsize=12)
+        ax1.set_title('Hit Rate@10', fontsize=14, fontweight='bold')
+        
+        # 添加數值標註
+        for i in range(len(svd_dims)):
+            for j in range(len(k_values)):
+                text = ax1.text(j, i, f'{hit_rate_matrix[i, j]:.3f}',
+                               ha="center", va="center", color="black", fontsize=9)
+        
+        plt.colorbar(im1, ax=ax1, label='Hit Rate@10')
+        
+        # NDCG 熱圖
+        im2 = ax2.imshow(ndcg_matrix, cmap='YlGnBu', aspect='auto')
+        ax2.set_xticks(range(len(k_values)))
+        ax2.set_yticks(range(len(svd_dims)))
+        ax2.set_xticklabels(k_values)
+        ax2.set_yticklabels(svd_dims)
+        ax2.set_xlabel('K (Number of Neighbors)', fontsize=12)
+        ax2.set_ylabel('SVD Dimension', fontsize=12)
+        ax2.set_title('NDCG@10', fontsize=14, fontweight='bold')
+        
+        # 添加數值標註
+        for i in range(len(svd_dims)):
+            for j in range(len(k_values)):
+                text = ax2.text(j, i, f'{ndcg_matrix[i, j]:.3f}',
+                               ha="center", va="center", color="black", fontsize=9)
+        
+        plt.colorbar(im2, ax=ax2, label='NDCG@10')
+        
+        plt.tight_layout()
+        
+        output_path = self.figures_dir / 'svd_knn_expand_heatmap.png'
+        plt.savefig(output_path, dpi=300, bbox_inches='tight')
+        plt.close()
+        
+        print(f"✅ 擴展網格搜索熱圖已保存: {output_path}")
+        
+        # 生成分析報告
+        best_result = max(expand_results, key=lambda x: x['hit_rate'])
+        print(f"\n📊 擴展網格搜索分析:")
+        print(f"   最佳配置: SVD={best_result['n_components']}, K={best_result['k_neighbors']}")
+        print(f"   Hit Rate@10: {best_result['hit_rate']:.4f}")
+        print(f"   NDCG@10: {best_result['ndcg']:.4f}")
         
         return True
     
@@ -856,6 +1001,7 @@ class ReportGenerator:
         # 生成實驗結果可視化圖表
         print("📈 生成實驗結果可視化圖表...")
         results['plots']['grid_heatmap'] = self.generate_grid_heatmap()
+        results['plots']['expand_heatmap'] = self.generate_expand_heatmap()
         print()
         results['plots']['svd'] = self.generate_svd_plots()
         results['plots']['knn'] = self.generate_knn_plots()
