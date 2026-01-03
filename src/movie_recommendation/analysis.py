@@ -256,8 +256,26 @@ class ExperimentAnalyzer:
         """生成所有階段的摘要表格"""
         summary = []
         
-        for stage_name in ['DS', 'FILTER', 'SVD', 'KNN', 'BIAS', 'OPT']:
-            results = self.load_stage_results(stage_name)
+        # 移除 DS 階段，因為它測試的是資料量而非超參數
+        for stage_name in ['FILTER', 'KNN_BASELINE', 'SVD_KNN_GRID', 'BIAS', 'OPT']:
+            # SVD_KNN_GRID 特殊處理
+            if stage_name == 'SVD_KNN_GRID':
+                # 載入所有 SVD_KNN_GRID 結果
+                log_dir = Path(self.log_dir)
+                grid_results = []
+                for i in range(1, 31):
+                    config_name = f'SVD_KNN_GRID_{i:03d}'
+                    json_file = log_dir / f'{config_name}.json'
+                    if json_file.exists():
+                        try:
+                            with open(json_file, 'r') as f:
+                                data = json.load(f)
+                            grid_results.append({'config_name': config_name, 'data': data})
+                        except:
+                            pass
+                results = grid_results
+            else:
+                results = self.load_stage_results(stage_name)
             
             if results:
                 # 找出最佳結果

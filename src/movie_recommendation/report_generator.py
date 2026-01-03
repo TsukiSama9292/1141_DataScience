@@ -39,21 +39,114 @@ class ReportGenerator:
         self.figures_dir.mkdir(parents=True, exist_ok=True)
         self.dataset_size = dataset_size  # 用於文件命名
     
-    def generate_svd_plots(self) -> bool:
-        """生成 SVD 維度分析圖"""
-        svd_analysis = self.analyzer.analyze_svd()
+    def _load_grid_results(self):
+        """載入 SVD_KNN_GRID 網格搜索結果"""
+        log_dir = Path('log')
+        grid_results = []
         
-        if not svd_analysis or not svd_analysis['results']:
-            print("⚠️ SVD 結果不足，跳過圖表生成")
+        # 載入所有 SVD_KNN_GRID 結果
+        # 編號 1-5: SVD=32, K=8,16,32,64,128
+        # 編號 6-10: SVD=64, K=8,16,32,64,128
+        # 編號 11-15: SVD=128, K=8,16,32,64,128
+        # 編號 16-20: SVD=256, K=8,16,32,64,128
+        # 編號 21-25: SVD=512, K=8,16,32,64,128
+        # 編號 26-30: SVD=1024, K=8,16,32,64,128
+        for i in range(1, 31):  # SVD_KNN_GRID_001 到 SVD_KNN_GRID_030
+            config_name = f'SVD_KNN_GRID_{i:03d}'
+            json_file = log_dir / f'{config_name}.json'
+            
+            if json_file.exists():
+                try:
+                    with open(json_file, 'r') as f:
+                        data = json.load(f)
+                    
+                    # 從配置文件或結果中提取參數
+                    # 根據編號計算 n_components 和 k_neighbors
+                    idx = i - 1
+                    svd_idx = idx // 5  # 0, 1, 2, 3, 4, 5
+                    k_idx = idx % 5     # 0, 1, 2, 3, 4
+                    
+                    n_components = 32 * (2 ** svd_idx)  # 32, 64, 128, 256, 512, 1024
+                    k_neighbors = 8 * (2 ** k_idx)      # 8, 16, 32, 64, 128
+                    
+                    metrics = data.get('metrics', {})
+                    time_records = data.get('time_records', {})
+                    
+                    grid_results.append({
+                        'config_name': config_name,
+                        'n_components': n_components,
+                        'k_neighbors': k_neighbors,
+                        'hit_rate': metrics.get('hit_rate', 0),
+                        'ndcg': metrics.get('ndcg', 0),
+                        'rmse': metrics.get('rmse', 0),
+                        'total_time': sum(time_records.values()) if time_records else 0
+                    })
+                except Exception as e:
+                    print(f"⚠️ 無法讀取 {json_file}: {e}")
+        
+        return grid_results
+    
+    def _load_knn_baseline_results(self):
+        """載入 KNN_BASELINE 純KNN基準線結果"""
+        log_dir = Path('log')
+        baseline_results = []
+        
+        # 載入所有 KNN_BASELINE 結果 (1-10)
+        for i in range(1, 11):
+            config_name = f'KNN_BASELINE_{i:03d}'
+            json_file = log_dir / f'{config_name}.json'
+            
+            if json_file.exists():
+                try:
+                    with open(json_file, 'r') as f:
+                        data = json.load(f)
+                    
+                    # 提取 k_neighbors 值：5, 10, 15, ..., 50
+                    k_neighbors = 5 * i
+                    
+                    metrics = data.get('metrics', {})
+                    time_records = data.get('time_records', {})
+                    
+                    baseline_results.append({
+                        'config_name': config_name,
+                        'k_neighbors': k_neighbors,
+                        'hit_rate': metrics.get('hit_rate', 0),
+                        'ndcg': metrics.get('ndcg', 0),
+                        'rmse': metrics.get('rmse', 0),
+                        'total_time': sum(time_records.values()) if time_records else 0
+                    })
+                except Exception as e:
+                    print(f"⚠️ 無法讀取 {json_file}: {e}")
+        
+        return baseline_results
+    
+    def generate_svd_plots(self) -> bool:
+        """生成 SVD 維度分析圖（從網格搜索結果提取）"""
+        # 從 SVD_KNN_GRID 結果中提取 SVD 分析數據
+        grid_results = self._load_grid_results()
+        
+        if not grid_results:
+            print("⚠️ SVD_KNN_GRID 結果不足，跳過圖表生成")
             return False
         
-        data = sorted(svd_analysis['results'], key=lambda x: x['n_components'])
+        # 按 SVD 維度分組，對每個維度取所有 K 值的平均
+        svd_analysis = {}
+        for result in grid_results:
+            dim = result['n_components']
+            if dim not in svd_analysis:
+                svd_analysis[dim] = {'hit_rates': [], 'ndcgs': [], 'rmses': [], 'times': []}
+            
+            svd_analysis[dim]['hit_rates'].append(result['hit_rate'])
+            svd_analysis[dim]['ndcgs'].append(result['ndcg'])
+            svd_analysis[dim]['rmses'].append(result['rmse'])
+            svd_analysis[dim]['times'].append(result['total_time'])
         
-        dims = [d['n_components'] for d in data]
-        hit_rates = [d['hit_rate'] for d in data]
-        ndcgs = [d['ndcg'] for d in data]
-        rmses = [d['rmse'] for d in data]
-        times = [d['total_time'] for d in data]
+        # 計算平均值
+        dims = sorted(svd_analysis.keys())
+        hit_rates = [np.mean(svd_analysis[d]['hit_rates']) for d in dims]
+        ndcgs = [np.mean(svd_analysis[d]['ndcgs']) for d in dims]
+        rmses = [np.mean(svd_analysis[d]['rmses']) for d in dims]
+        times = [np.mean(svd_analysis[d]['times']) for d in dims]
         
         # 創建圖表
         fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(16, 12))
@@ -106,20 +199,32 @@ class ReportGenerator:
         return True
     
     def generate_knn_plots(self) -> bool:
-        """生成 KNN K值分析圖"""
-        knn_analysis = self.analyzer.analyze_knn()
+        """生成 KNN K值分析圖（從網格搜索結果提取）"""
+        # 從 SVD_KNN_GRID 結果中提取 KNN 分析數據
+        grid_results = self._load_grid_results()
         
-        if not knn_analysis or not knn_analysis['results']:
-            print("⚠️ KNN 結果不足，跳過圖表生成")
+        if not grid_results:
+            print("⚠️ SVD_KNN_GRID 結果不足，跳過圖表生成")
             return False
         
-        data = sorted(knn_analysis['results'], key=lambda x: x['k_neighbors'])
+        # 按 K 值分組，對每個 K 值取所有 SVD 維度的平均
+        knn_analysis = {}
+        for result in grid_results:
+            k = result['k_neighbors']
+            if k not in knn_analysis:
+                knn_analysis[k] = {'hit_rates': [], 'ndcgs': [], 'rmses': [], 'times': []}
+            
+            knn_analysis[k]['hit_rates'].append(result['hit_rate'])
+            knn_analysis[k]['ndcgs'].append(result['ndcg'])
+            knn_analysis[k]['rmses'].append(result['rmse'])
+            knn_analysis[k]['times'].append(result['total_time'])
         
-        ks = [d['k_neighbors'] for d in data]
-        hit_rates = [d['hit_rate'] for d in data]
-        ndcgs = [d['ndcg'] for d in data]
-        rmses = [d['rmse'] for d in data]
-        times = [d['total_time'] for d in data]
+        # 計算平均值
+        ks = sorted(knn_analysis.keys())
+        hit_rates = [np.mean(knn_analysis[k]['hit_rates']) for k in ks]
+        ndcgs = [np.mean(knn_analysis[k]['ndcgs']) for k in ks]
+        rmses = [np.mean(knn_analysis[k]['rmses']) for k in ks]
+        times = [np.mean(knn_analysis[k]['times']) for k in ks]
         
         # 創建圖表
         fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(16, 12))
@@ -173,11 +278,15 @@ class ReportGenerator:
     
     def generate_comparison_plot(self) -> bool:
         """生成階段對比圖"""
+        # 找出最佳的 SVD_KNN_GRID 配置
+        grid_results = self._load_grid_results()
+        best_grid_config = None
+        if grid_results:
+            best_grid_config = max(grid_results, key=lambda x: x['hit_rate'])['config_name']
+        
         stages = {
-            'DS': 'DS_004',
             'FILTER': 'FILTER_001',
-            'SVD': 'SVD_008',
-            'KNN': 'KNN_004',
+            'SVD_KNN': best_grid_config or 'SVD_KNN_GRID_001',
         }
         
         stage_data = {}
@@ -243,6 +352,295 @@ class ReportGenerator:
         plt.close()
         
         print(f"✅ 階段對比圖已保存: {output_path}")
+        return True
+    
+    def generate_grid_heatmap(self) -> bool:
+        """生成 SVD×KNN 網格搜索熱圖"""
+        grid_results = self._load_grid_results()
+        
+        if not grid_results:
+            print("⚠️ SVD_KNN_GRID 結果不足，跳過熱圖生成")
+            return False
+        
+        # 準備數據矩陣
+        svd_dims = sorted(set(r['n_components'] for r in grid_results))
+        k_values = sorted(set(r['k_neighbors'] for r in grid_results))
+        
+        # 創建熱圖數據
+        hit_rate_matrix = np.zeros((len(svd_dims), len(k_values)))
+        ndcg_matrix = np.zeros((len(svd_dims), len(k_values)))
+        
+        for result in grid_results:
+            i = svd_dims.index(result['n_components'])
+            j = k_values.index(result['k_neighbors'])
+            hit_rate_matrix[i, j] = result['hit_rate']
+            ndcg_matrix[i, j] = result['ndcg']
+        
+        # 創建圖表
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(18, 7))
+        fig.suptitle('SVD × KNN Grid Search Heatmap', fontsize=16, fontweight='bold')
+        
+        # Hit Rate 熱圖
+        im1 = ax1.imshow(hit_rate_matrix, cmap='YlOrRd', aspect='auto')
+        ax1.set_xticks(range(len(k_values)))
+        ax1.set_yticks(range(len(svd_dims)))
+        ax1.set_xticklabels(k_values)
+        ax1.set_yticklabels(svd_dims)
+        ax1.set_xlabel('K (Number of Neighbors)', fontsize=12)
+        ax1.set_ylabel('SVD Dimension', fontsize=12)
+        ax1.set_title('Hit Rate@10', fontsize=14, fontweight='bold')
+        
+        # 添加數值標註
+        for i in range(len(svd_dims)):
+            for j in range(len(k_values)):
+                text = ax1.text(j, i, f'{hit_rate_matrix[i, j]:.3f}',
+                               ha="center", va="center", color="black", fontsize=9)
+        
+        plt.colorbar(im1, ax=ax1, label='Hit Rate@10')
+        
+        # NDCG 熱圖
+        im2 = ax2.imshow(ndcg_matrix, cmap='YlGnBu', aspect='auto')
+        ax2.set_xticks(range(len(k_values)))
+        ax2.set_yticks(range(len(svd_dims)))
+        ax2.set_xticklabels(k_values)
+        ax2.set_yticklabels(svd_dims)
+        ax2.set_xlabel('K (Number of Neighbors)', fontsize=12)
+        ax2.set_ylabel('SVD Dimension', fontsize=12)
+        ax2.set_title('NDCG@10', fontsize=14, fontweight='bold')
+        
+        # 添加數值標註
+        for i in range(len(svd_dims)):
+            for j in range(len(k_values)):
+                text = ax2.text(j, i, f'{ndcg_matrix[i, j]:.3f}',
+                               ha="center", va="center", color="black", fontsize=9)
+        
+        plt.colorbar(im2, ax=ax2, label='NDCG@10')
+        
+        plt.tight_layout()
+        
+        output_path = self.figures_dir / 'svd_knn_grid_heatmap.png'
+        plt.savefig(output_path, dpi=300, bbox_inches='tight')
+        plt.close()
+        
+        print(f"✅ 網格搜索熱圖已保存: {output_path}")
+        
+        # 生成分析報告
+        best_result = max(grid_results, key=lambda x: x['hit_rate'])
+        print(f"\n📊 網格搜索分析:")
+        print(f"   最佳配置: SVD={best_result['n_components']}, K={best_result['k_neighbors']}")
+        print(f"   Hit Rate@10: {best_result['hit_rate']:.4f}")
+        print(f"   NDCG@10: {best_result['ndcg']:.4f}")
+        
+        # 分析趨勢
+        print(f"\n🔍 趨勢分析:")
+        
+        # SVD 維度效果
+        svd_avg_hit_rates = [hit_rate_matrix[i, :].mean() for i in range(len(svd_dims))]
+        svd_trend = "遞增" if svd_avg_hit_rates[-1] > svd_avg_hit_rates[0] else "遞減"
+        print(f"   SVD 維度放大效果: {svd_trend}")
+        print(f"   - 維度 {svd_dims[0]}: 平均 Hit Rate = {svd_avg_hit_rates[0]:.4f}")
+        print(f"   - 維度 {svd_dims[-1]}: 平均 Hit Rate = {svd_avg_hit_rates[-1]:.4f}")
+        
+        # KNN K值效果
+        k_avg_hit_rates = [hit_rate_matrix[:, j].mean() for j in range(len(k_values))]
+        k_trend = "遞增" if k_avg_hit_rates[-1] > k_avg_hit_rates[0] else "遞減"
+        print(f"   KNN K值放大效果: {k_trend}")
+        print(f"   - K={k_values[0]}: 平均 Hit Rate = {k_avg_hit_rates[0]:.4f}")
+        print(f"   - K={k_values[-1]}: 平均 Hit Rate = {k_avg_hit_rates[-1]:.4f}")
+        
+        # 建議
+        print(f"\n💡 建議:")
+        if svd_avg_hit_rates[-1] > svd_avg_hit_rates[0] and (svd_avg_hit_rates[-1] - svd_avg_hit_rates[-2]) > 0.001:
+            print(f"   ⚠️  SVD 維度仍在改善，建議測試更大的維度（如 512, 1024）")
+        else:
+            print(f"   ✅ SVD 維度已達收斂，當前範圍已足夠")
+        
+        if k_avg_hit_rates[-1] > k_avg_hit_rates[0] and (k_avg_hit_rates[-1] - k_avg_hit_rates[-2]) > 0.001:
+            print(f"   ⚠️  KNN K值仍在改善，建議測試更大的 K 值（如 128, 256）")
+        else:
+            print(f"   ✅ KNN K值已達收斂，當前範圍已足夠")
+        
+        return True
+    
+    def generate_svd_vs_baseline_comparison(self) -> bool:
+        """生成有無 SVD 對比圖：純KNN vs SVD+KNN"""
+        baseline_results = self._load_knn_baseline_results()
+        grid_results = self._load_grid_results()
+        
+        if not baseline_results:
+            print("⚠️ KNN_BASELINE 結果不足，跳過對比圖生成")
+            return False
+        
+        if not grid_results:
+            print("⚠️ SVD_KNN_GRID 結果不足，跳過對比圖生成")
+            return False
+        
+        # 對於每個 K 值，找出 SVD+KNN 的最佳結果
+        svd_knn_by_k = {}
+        for result in grid_results:
+            k = result['k_neighbors']
+            if k not in svd_knn_by_k or result['hit_rate'] > svd_knn_by_k[k]['hit_rate']:
+                svd_knn_by_k[k] = result
+        
+        # 只比較兩者都有的 K 值
+        baseline_by_k = {r['k_neighbors']: r for r in baseline_results}
+        common_ks = sorted(set(baseline_by_k.keys()) & set(svd_knn_by_k.keys()))
+        
+        if not common_ks:
+            print("⚠️ 沒有共同的 K 值可供比較")
+            return False
+        
+        # 準備數據
+        baseline_hit_rates = [baseline_by_k[k]['hit_rate'] for k in common_ks]
+        baseline_ndcgs = [baseline_by_k[k]['ndcg'] for k in common_ks]
+        baseline_times = [baseline_by_k[k]['total_time'] for k in common_ks]
+        
+        svd_hit_rates = [svd_knn_by_k[k]['hit_rate'] for k in common_ks]
+        svd_ndcgs = [svd_knn_by_k[k]['ndcg'] for k in common_ks]
+        svd_times = [svd_knn_by_k[k]['total_time'] for k in common_ks]
+        svd_dims = [svd_knn_by_k[k]['n_components'] for k in common_ks]
+        
+        # 創建圖表
+        fig = plt.figure(figsize=(18, 12))
+        gs = fig.add_gridspec(3, 2, hspace=0.3, wspace=0.3)
+        
+        fig.suptitle('Pure KNN vs SVD+KNN Comparison', fontsize=18, fontweight='bold')
+        
+        # 1. Hit Rate 比較（折線圖）
+        ax1 = fig.add_subplot(gs[0, 0])
+        ax1.plot(common_ks, baseline_hit_rates, 'o-', linewidth=2, markersize=8, 
+                color='#E63946', label='Pure KNN (no SVD)')
+        ax1.plot(common_ks, svd_hit_rates, 's-', linewidth=2, markersize=8, 
+                color='#2E86AB', label='SVD+KNN (best SVD dim per K)')
+        ax1.set_xlabel('K (Number of Neighbors)', fontsize=12)
+        ax1.set_ylabel('Hit Rate@10', fontsize=12)
+        ax1.set_title('Hit Rate@10: Pure KNN vs SVD+KNN', fontsize=14, fontweight='bold')
+        ax1.legend(fontsize=10)
+        ax1.grid(True, alpha=0.3)
+        
+        # 2. NDCG 比較（折線圖）
+        ax2 = fig.add_subplot(gs[0, 1])
+        ax2.plot(common_ks, baseline_ndcgs, 'o-', linewidth=2, markersize=8, 
+                color='#E63946', label='Pure KNN')
+        ax2.plot(common_ks, svd_ndcgs, 's-', linewidth=2, markersize=8, 
+                color='#2E86AB', label='SVD+KNN')
+        ax2.set_xlabel('K (Number of Neighbors)', fontsize=12)
+        ax2.set_ylabel('NDCG@10', fontsize=12)
+        ax2.set_title('NDCG@10: Pure KNN vs SVD+KNN', fontsize=14, fontweight='bold')
+        ax2.legend(fontsize=10)
+        ax2.grid(True, alpha=0.3)
+        
+        # 3. 改善百分比（柱狀圖）
+        ax3 = fig.add_subplot(gs[1, 0])
+        improvements = [(svd - base) / base * 100 if base > 0 else 0 
+                       for base, svd in zip(baseline_hit_rates, svd_hit_rates)]
+        colors = ['#06D6A0' if imp > 0 else '#EF476F' for imp in improvements]
+        bars = ax3.bar(range(len(common_ks)), improvements, color=colors, alpha=0.7, edgecolor='black')
+        ax3.axhline(y=0, color='black', linestyle='-', linewidth=0.8)
+        ax3.set_xlabel('K (Number of Neighbors)', fontsize=12)
+        ax3.set_ylabel('Improvement (%)', fontsize=12)
+        ax3.set_title('SVD Improvement over Pure KNN (Hit Rate@10)', fontsize=14, fontweight='bold')
+        ax3.set_xticks(range(len(common_ks)))
+        ax3.set_xticklabels(common_ks)
+        ax3.grid(True, alpha=0.3, axis='y')
+        
+        # 標註數值
+        for i, (bar, imp) in enumerate(zip(bars, improvements)):
+            height = bar.get_height()
+            ax3.text(bar.get_x() + bar.get_width()/2., height,
+                    f'{imp:+.1f}%',
+                    ha='center', va='bottom' if height > 0 else 'top', fontsize=9)
+        
+        # 4. 執行時間比較（柱狀圖）
+        ax4 = fig.add_subplot(gs[1, 1])
+        x = np.arange(len(common_ks))
+        width = 0.35
+        bars1 = ax4.bar(x - width/2, baseline_times, width, label='Pure KNN', 
+                       color='#E63946', alpha=0.7, edgecolor='black')
+        bars2 = ax4.bar(x + width/2, svd_times, width, label='SVD+KNN', 
+                       color='#2E86AB', alpha=0.7, edgecolor='black')
+        ax4.set_xlabel('K (Number of Neighbors)', fontsize=12)
+        ax4.set_ylabel('Execution Time (seconds)', fontsize=12)
+        ax4.set_title('Execution Time: Pure KNN vs SVD+KNN', fontsize=14, fontweight='bold')
+        ax4.set_xticks(x)
+        ax4.set_xticklabels(common_ks)
+        ax4.legend(fontsize=10)
+        ax4.grid(True, alpha=0.3, axis='y')
+        
+        # 5. 最佳 SVD 維度分布（柱狀圖）
+        ax5 = fig.add_subplot(gs[2, 0])
+        ax5.bar(range(len(common_ks)), svd_dims, color='#F77F00', alpha=0.7, edgecolor='black')
+        ax5.set_xlabel('K (Number of Neighbors)', fontsize=12)
+        ax5.set_ylabel('Best SVD Dimension', fontsize=12)
+        ax5.set_title('Optimal SVD Dimension for Each K', fontsize=14, fontweight='bold')
+        ax5.set_xticks(range(len(common_ks)))
+        ax5.set_xticklabels(common_ks)
+        ax5.grid(True, alpha=0.3, axis='y')
+        
+        # 標註維度值
+        for i, dim in enumerate(svd_dims):
+            ax5.text(i, dim, f'{dim}', ha='center', va='bottom', fontsize=9)
+        
+        # 6. 摘要統計表格
+        ax6 = fig.add_subplot(gs[2, 1])
+        ax6.axis('off')
+        
+        # 計算統計數據
+        avg_improvement = np.mean(improvements)
+        max_improvement = max(improvements)
+        max_imp_k = common_ks[improvements.index(max_improvement)]
+        
+        avg_baseline_hit = np.mean(baseline_hit_rates)
+        avg_svd_hit = np.mean(svd_hit_rates)
+        
+        avg_baseline_time = np.mean(baseline_times)
+        avg_svd_time = np.mean(svd_times)
+        time_overhead = (avg_svd_time - avg_baseline_time) / avg_baseline_time * 100 if avg_baseline_time > 0 else 0
+        
+        summary_text = f"""
+        📊 Summary Statistics
+        
+        Performance (Hit Rate@10):
+        • Pure KNN Average: {avg_baseline_hit:.4f}
+        • SVD+KNN Average: {avg_svd_hit:.4f}
+        • Average Improvement: {avg_improvement:+.2f}%
+        • Max Improvement: {max_improvement:+.2f}% (at K={max_imp_k})
+        
+        Efficiency (Execution Time):
+        • Pure KNN Average: {avg_baseline_time:.1f}s
+        • SVD+KNN Average: {avg_svd_time:.1f}s
+        • Time Overhead: {time_overhead:+.1f}%
+        
+        Conclusion:
+        {'✅ SVD brings significant improvement!' if avg_improvement > 1 else '⚠️ SVD improvement is marginal'}
+        {'⏱️ Acceptable time overhead' if time_overhead < 50 else '⚠️ Significant time cost'}
+        """
+        
+        ax6.text(0.1, 0.9, summary_text, transform=ax6.transAxes, 
+                fontsize=11, verticalalignment='top', family='monospace',
+                bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.3))
+        
+        plt.tight_layout()
+        
+        output_path = self.figures_dir / 'svd_vs_baseline_comparison.png'
+        plt.savefig(output_path, dpi=300, bbox_inches='tight')
+        plt.close()
+        
+        print(f"✅ SVD vs Baseline 對比圖已保存: {output_path}")
+        
+        # 輸出詳細分析
+        print(f"\n📊 SVD vs Pure KNN 詳細分析:")
+        print(f"   平均改善: {avg_improvement:+.2f}%")
+        print(f"   最大改善: {max_improvement:+.2f}% (K={max_imp_k})")
+        print(f"   時間開銷: {time_overhead:+.1f}%")
+        
+        if avg_improvement > 5:
+            print(f"   💡 結論: SVD 帶來顯著效能提升，值得使用！")
+        elif avg_improvement > 1:
+            print(f"   💡 結論: SVD 有輕微改善，可考慮使用")
+        else:
+            print(f"   💡 結論: SVD 改善不明顯，純KNN可能更實用")
+        
         return True
     
     def generate_dataset_plots(self, use_full_dataset: bool = False) -> bool:
@@ -457,6 +855,8 @@ class ReportGenerator:
         
         # 生成實驗結果可視化圖表
         print("📈 生成實驗結果可視化圖表...")
+        results['plots']['grid_heatmap'] = self.generate_grid_heatmap()
+        print()
         results['plots']['svd'] = self.generate_svd_plots()
         results['plots']['knn'] = self.generate_knn_plots()
         results['plots']['comparison'] = self.generate_comparison_plot()
@@ -490,8 +890,10 @@ class ReportGenerator:
         
         # 列出生成的文件
         plot_files = [
+            "figures/svd_knn_grid_heatmap.png",
             "figures/svd_dimension_analysis.png",
             "figures/knn_k_value_analysis.png",
+            "figures/svd_vs_baseline_comparison.png",
             "figures/stage_comparison.png"
         ]
         
@@ -547,10 +949,6 @@ def generate_report(log_dir: str = 'log', output_dir: str = 'reports',
         include_dataset_analysis=include_dataset_analysis,
         use_full_dataset=use_full_dataset
     )
-    analyzer = ExperimentAnalyzer(log_dir=log_dir)
-    dataset_analyzer = DatasetAnalyzer()
-    generator = ReportGenerator(analyzer, dataset_analyzer, output_dir=output_dir)
-    return generator.generate_full_report(include_dataset_analysis=include_dataset_analysis)
 
 
 # 命令行接口

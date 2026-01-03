@@ -19,35 +19,25 @@ except ImportError:
 
 def setup_logging(log_name: str, log_dir: str = "log") -> logging.Logger:
     """
-    Set up logging with file and console handlers.
+    Set up logging with console handler only.
     
     Args:
-        log_name: Name of the log file (without extension)
-        log_dir: Directory to save log files
+        log_name: Name of the logger
+        log_dir: Directory to save JSON results (not used for .log files)
         
     Returns:
         Logger instance
     """
-    log_path = Path(log_dir)
-    log_path.mkdir(parents=True, exist_ok=True)
-    
     logger = logging.getLogger(log_name)
     logger.setLevel(logging.INFO)
-    logger.handlers = []
+    logger.handlers = []  # Clear existing handlers
     
-    # File handler
-    file_handler = logging.FileHandler(log_path / f"{log_name}.log", encoding='utf-8')
-    file_handler.setLevel(logging.INFO)
-    file_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-    file_handler.setFormatter(file_formatter)
-    
-    # Console handler
+    # Console handler only - no .log file
     console_handler = logging.StreamHandler()
     console_handler.setLevel(logging.INFO)
     console_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
     console_handler.setFormatter(console_formatter)
     
-    logger.addHandler(file_handler)
     logger.addHandler(console_handler)
     
     return logger
@@ -141,7 +131,8 @@ def log_metrics(
     metrics: Dict[str, float],
     n_samples: int,
     time_records: Dict[str, float],
-    peak_memory: float
+    peak_memory: float,
+    config: Optional[Dict] = None
 ):
     """
     Log all metrics in a standardized format.
@@ -152,10 +143,11 @@ def log_metrics(
         n_samples: Number of samples evaluated
         time_records: Dictionary of timing information
         peak_memory: Peak memory usage in MB
+        config: Optional experiment configuration to save
     """
     logger.info("")
 
-    # write a machine-readable JSON summary beside the text log
+    # Write machine-readable JSON summary
     try:
         log_path = Path('log')
         log_path.mkdir(parents=True, exist_ok=True)
@@ -166,6 +158,10 @@ def log_metrics(
             'time_records': {k: float(v) for k, v in time_records.items()},
             'peak_memory_mb': float(peak_memory)
         }
+        
+        # 保存實驗配置（如果提供）
+        if config:
+            summary['config'] = config
 
         # Write atomically: write to a temp file then rename
         tmp_path = log_path / f"{logger.name}.json.tmp"
@@ -179,9 +175,9 @@ def log_metrics(
             # fallback to rename via os.replace
             import os
             os.replace(str(tmp_path), str(final_path))
-        logger.info(f"已寫入 JSON 摘要: {final_path.name}")
+        logger.info(f"✅ 結果已保存: {final_path.name}")
     except Exception as e:
-        logger.warning(f"無法寫入 JSON 摘要: {e}")
+        logger.warning(f"⚠️ 無法保存結果: {e}")
     logger.info(f"評估結果 (樣本數: {n_samples})")
     logger.info("")
     

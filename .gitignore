@@ -12,3 +12,6 @@ __pycache__/
 *.pyd
 *.sqlite3
 *.pot
+
+# Log files (we only keep JSON results)
+log/*.log

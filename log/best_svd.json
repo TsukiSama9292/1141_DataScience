@@ -1,9 +1,0 @@
-{
-  "best_config": "SVD_008",
-  "best_n_components": 200,
-  "metrics": {
-    "hit_rate": 0.688,
-    "ndcg": 0.5398845385246288,
-    "rmse": 0.957231993285347
-  }
-}

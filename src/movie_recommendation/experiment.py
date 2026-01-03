@@ -225,7 +225,13 @@ class Experiment:
         # Evaluation
         stage_start = time.time()
         np.random.seed(self.config.random_state)
-        test_users = np.random.choice(n_users, size=self.config.n_samples, replace=False)
+        
+        # 動態調整樣本數，確保不超過可用用戶數
+        actual_samples = min(self.config.n_samples, n_users)
+        if actual_samples < self.config.n_samples:
+            logger.warning(f"⚠️  可用用戶數 ({n_users}) 少於配置樣本數 ({self.config.n_samples})，調整為 {actual_samples}")
+        
+        test_users = np.random.choice(n_users, size=actual_samples, replace=False)
         
         # Override predict_rating if amplification is used
         if self.config.amplification_factor != 1.0:
@@ -252,12 +258,31 @@ class Experiment:
         
         # Log results
         peak_memory = self.tracker.get_peak_mb()
+        
+        # 準備配置字典
+        config_dict = {
+            'data_limit': self.config.data_limit,
+            'min_item_ratings': self.config.min_item_ratings,
+            'use_timestamp': self.config.use_timestamp,
+            'use_item_bias': self.config.use_item_bias,
+            'use_svd': self.config.use_svd,
+            'n_components': self.config.n_components,
+            'use_time_decay': self.config.use_time_decay,
+            'half_life_days': self.config.half_life_days,
+            'use_tfidf': self.config.use_tfidf,
+            'k_neighbors': self.config.k_neighbors,
+            'amplification_factor': self.config.amplification_factor,
+            'top_n': self.config.top_n,
+            'random_state': self.config.random_state
+        }
+        
         log_metrics(
             self.logger,
             metrics,
             metrics['n_samples'],
             self.time_records,
-            peak_memory
+            peak_memory,
+            config=config_dict
         )
         
         self.logger.info(f"配置完成: {self.config_name}")
