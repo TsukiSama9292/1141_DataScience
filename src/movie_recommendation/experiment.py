@@ -13,6 +13,7 @@ from .feature_engineering import FeatureEngineer
 from .models import KNNRecommender
 from .evaluation import Evaluator
 from .utils import TimeTracker, setup_logging, log_metrics
+from .hybrid_engine import GenomeHybridModel
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +36,10 @@ class ExperimentConfig:
         amplification_factor: float = 1.0,
         n_samples: int = 500,
         top_n: int = 10,
-        random_state: int = 42
+        random_state: int = 42,
+        use_genome_hybrid: bool = False,
+        genome_alpha: float = 0.2,
+        cold_start_threshold: int = 50
     ):
         """
         Initialize experiment configuration.
@@ -70,6 +74,9 @@ class ExperimentConfig:
         self.n_samples = n_samples
         self.top_n = top_n
         self.random_state = random_state
+        self.use_genome_hybrid = use_genome_hybrid
+        self.genome_alpha = genome_alpha
+        self.cold_start_threshold = cold_start_threshold
 
 
 class Experiment:
@@ -225,6 +232,26 @@ class Experiment:
         # Evaluation
         stage_start = time.time()
         np.random.seed(self.config.random_state)
+
+        hybrid_engine = None
+        if getattr(self.config, 'use_genome_hybrid', False):
+            self.logger.info("🧬 [Hybrid] 正在啟動 Genome 冷啟動優化模組...")
+            
+            # 直接呼叫剛剛寫好的方法
+            genome_path = self.data_loader.get_genome_path()
+            
+            if genome_path:
+                try:
+                    hybrid_engine = GenomeHybridModel(
+                        genome_scores_path=genome_path,
+                        movie_map=movie_map
+                    )
+                    self.logger.info("   ✅ Genome 引擎初始化成功")
+                except Exception as e:
+                    self.logger.error(f"   ❌ 初始化失敗: {e}")
+                    hybrid_engine = None
+            else:
+                self.logger.warning("   ⚠️ 找不到基因檔案，將降級為純 KNN 模式。")
         
         # 動態調整樣本數，確保不超過可用用戶數
         actual_samples = min(self.config.n_samples, n_users)
@@ -251,7 +278,12 @@ class Experiment:
             test_users,
             top_n=self.config.top_n,
             item_means=self.item_means,
-            global_mean=self.global_mean
+            global_mean=self.global_mean,
+            hybrid_engine=hybrid_engine,
+            hybrid_config={
+                'alpha': getattr(self.config, 'genome_alpha', 0.2),
+                'threshold': getattr(self.config, 'cold_start_threshold', 50)
+            }
         )
         self.tracker.sample_memory()
         self._log_time("評估", stage_start)
@@ -273,7 +305,9 @@ class Experiment:
             'k_neighbors': self.config.k_neighbors,
             'amplification_factor': self.config.amplification_factor,
             'top_n': self.config.top_n,
-            'random_state': self.config.random_state
+            'random_state': self.config.random_state,
+            'use_genome_hybrid': getattr(self.config, 'use_genome_hybrid', False),
+            'genome_alpha': getattr(self.config, 'genome_alpha', 0.2)
         }
         
         log_metrics(
