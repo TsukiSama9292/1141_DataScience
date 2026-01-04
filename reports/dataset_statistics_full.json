@@ -1,66 +1,66 @@
 {
-  "sample_size": 100000,
+  "sample_size": 20000263,
   "rating_distribution": {
     "distribution": {},
-    "mean": 3.507605,
+    "mean": 3.5255285642993797,
     "median": 3.5,
-    "std": 1.062928013618336,
+    "std": 1.051988892994864,
     "min": 0.5,
     "max": 5.0,
-    "total_ratings": 100000
+    "total_ratings": 20000263
   },
   "user_activity": {
-    "total_users": 702,
-    "mean_ratings_per_user": 142.45014245014244,
-    "median_ratings_per_user": 70.0,
-    "std_ratings_per_user": 208.47116802052682,
-    "max_ratings": 2179,
+    "total_users": 138493,
+    "mean_ratings_per_user": 144.4135299257002,
+    "median_ratings_per_user": 68.0,
+    "std_ratings_per_user": 230.2672569967339,
+    "max_ratings": 9254,
     "min_ratings": 20,
     "long_tail": {
-      "top_20_percent_users": 140,
-      "top_20_percent_ratings": 62298,
-      "top_20_percent_ratio": 0.62298
+      "top_20_percent_users": 27698,
+      "top_20_percent_ratings": 12642954,
+      "top_20_percent_ratio": 0.6321393873670561
     },
     "quantiles": {
       "25%": 35,
-      "50%": 70,
-      "75%": 158,
-      "90%": 324,
-      "95%": 510,
-      "99%": 1109
+      "50%": 68,
+      "75%": 155,
+      "90%": 334,
+      "95%": 520,
+      "99%": 1113
     }
   },
   "item_popularity": {
-    "total_items": 8227,
-    "mean_ratings_per_item": 12.155099064057373,
-    "median_ratings_per_item": 3.0,
-    "std_ratings_per_item": 25.870481263902875,
-    "max_ratings": 350,
+    "total_items": 26744,
+    "mean_ratings_per_item": 747.8411232425965,
+    "median_ratings_per_item": 18.0,
+    "std_ratings_per_item": 3085.8182679035863,
+    "max_ratings": 67310,
     "min_ratings": 1,
     "cold_start": {
-      "items_with_1_rating": 2449,
-      "items_with_le_5_ratings": 5156,
-      "items_with_le_10_ratings": 6189,
-      "cold_start_ratio_5": 0.6267169077427981,
-      "cold_start_ratio_10": 0.7522790810745108
+      "items_with_1_rating": 3972,
+      "items_with_le_5_ratings": 9225,
+      "items_with_le_10_ratings": 11665,
+      "cold_start_ratio_5": 0.34493718217170205,
+      "cold_start_ratio_10": 0.43617259946156145
     },
     "quantiles": {
-      "25%": 1,
-      "50%": 3,
-      "75%": 10,
-      "90%": 30,
-      "95%": 55,
-      "99%": 132
+      "25%": 3,
+      "50%": 18,
+      "75%": 205,
+      "90%": 1305,
+      "95%": 3612,
+      "99%": 14388
     }
   },
   "sparsity": {
-    "n_users": 702,
-    "n_items": 8227,
-    "n_ratings": 100000,
-    "total_possible_ratings": 5775354,
-    "sparsity": 0.9826850440682944,
-    "density": 0.017314955931705657,
-    "sparsity_percentage": 98.26850440682944,
-    "density_percentage": 1.7314955931705658
+    "n_users": 138493,
+    "n_items": 26744,
+    "n_ratings": 20000263,
+    "total_possible_ratings": 3703856792,
+    "sparsity": 0.9946001521864456,
+    "density": 0.0053998478135544505,
+    "sparsity_percentage": 99.46001521864456,
+    "density_percentage": 0.539984781355445
   }
 }

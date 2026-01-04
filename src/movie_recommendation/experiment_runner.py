@@ -39,10 +39,46 @@ class ExperimentRunner:
         # 存儲最佳配置（用於級聯）
         self.best_configs = {}
     
-    def is_completed(self, experiment_id: str) -> bool:
-        """檢查實驗是否已完成"""
+    def is_completed(self, experiment_id: str, expected_config: Optional[Dict] = None) -> bool:
+        """檢查實驗是否已完成且配置匹配
+        
+        Args:
+            experiment_id: 實驗ID
+            expected_config: 預期的配置參數（用於驗證配置一致性）
+        
+        Returns:
+            True 如果實驗已完成且配置匹配（或不檢查配置）
+        """
         json_path = self.log_dir / f"{experiment_id}.json"
-        return json_path.exists()
+        
+        if not json_path.exists():
+            return False
+        
+        # 如果提供了預期配置，需要驗證配置是否匹配
+        if expected_config is not None:
+            try:
+                result = self.load_experiment_result(experiment_id)
+                if result is None:
+                    return False
+                
+                saved_config = result.get('config', {})
+                
+                # 檢查關鍵配置參數是否匹配
+                # 只檢查 expected_config 中指定的參數
+                for key, expected_value in expected_config.items():
+                    saved_value = saved_config.get(key)
+                    if saved_value != expected_value:
+                        logger.info(f"⚠️  實驗 {experiment_id} 配置不匹配: {key}={saved_value} (期望 {expected_value})")
+                        return False
+                
+                return True
+                
+            except Exception as e:
+                logger.warning(f"⚠️  無法驗證實驗 {experiment_id} 的配置: {e}")
+                return False
+        
+        # 如果沒有提供預期配置，只檢查文件存在性
+        return True
     
     def load_experiment_result(self, experiment_id: str) -> Optional[Dict]:
         """載入實驗結果"""
@@ -69,9 +105,15 @@ class ExperimentRunner:
         """
         experiment_id = experiment_spec.id
         
-        # 檢查是否已完成
-        if not force and self.is_completed(experiment_id):
-            logger.info(f"⏭️  跳過實驗 {experiment_id}（已完成）")
+        # 檢查是否已完成（驗證配置一致性）
+        # 提取關鍵配置參數用於驗證
+        key_params = {}
+        for key in ['n_components', 'k_neighbors', 'use_svd', 'min_item_ratings', 'data_limit']:
+            if key in experiment_spec.config:
+                key_params[key] = experiment_spec.config[key]
+        
+        if not force and self.is_completed(experiment_id, key_params):
+            logger.info(f"⏭️  跳過實驗 {experiment_id}（已完成且配置匹配）")
             return {'status': 'skipped', 'reason': 'already_completed'}
         
         logger.info(f"🚀 開始實驗: {experiment_id} - {experiment_spec.name}")

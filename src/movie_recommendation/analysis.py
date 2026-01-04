@@ -607,43 +607,92 @@ class DatasetAnalyzer:
         
         return stats
     
-    def generate_full_analysis(self, sample_size: int = 100000) -> Dict[str, Any]:
-        """生成完整的資料集分析報告"""
+    def generate_full_analysis(self, sample_size: int = 100000, use_full_dataset: bool = False) -> Dict[str, Any]:
+        """生成完整的資料集分析報告
+        
+        Args:
+            sample_size: 樣本大小（當 use_full_dataset=False 時使用）
+            use_full_dataset: 是否使用完整資料集（20M 評分），使用分批處理避免記憶體溢出
+        """
         print("=" * 80)
         print("📊 資料集統計分析")
+        if use_full_dataset:
+            print("⚠️  使用完整資料集（20M 評分）- 這可能需要幾分鐘時間")
         print("=" * 80)
         print()
         
-        # 載入資料
-        print(f"📁 載入資料樣本 (前 {sample_size:,} 筆)...")
-        try:
-            ratings = self.load_ratings_sample(limit=sample_size)
-        except Exception as e:
-            print(f"❌ 載入資料時發生錯誤: {e}")
-            return {}
-        
-        if ratings is None or ratings.empty:
-            print("❌ 無法載入資料")
-            return {}
-        
-        print(f"✅ 成功載入 {len(ratings):,} 筆評分資料")
-        print()
-        
-        # 執行各項分析
-        analysis = {
-            'sample_size': len(ratings),
-            'rating_distribution': self.analyze_rating_distribution(ratings),
-            'user_activity': self.analyze_user_activity(ratings),
-            'item_popularity': self.analyze_item_popularity(ratings),
-            'sparsity': self.analyze_sparsity(ratings)
-        }
+        if use_full_dataset:
+            # 使用完整資料集進行分析（分批處理，不載入整個資料到記憶體）
+            print("📊 使用分批處理分析完整資料集...")
+            
+            # 執行各項分析（每個分析函數內部會使用分批處理）
+            analysis = {
+                'sample_size': 20000263,  # MovieLens 20M 總評分數
+                'rating_distribution': self.analyze_rating_distribution(use_full_dataset=True),
+                'user_activity': self.analyze_user_activity(use_full_dataset=True),
+                'item_popularity': self.analyze_item_popularity(use_full_dataset=True),
+                'sparsity': None  # 稀疏度需要完整的用戶和電影數量，從其他統計中推導
+            }
+            
+            # 從統計數據計算稀疏度
+            if analysis['user_activity'] and analysis['item_popularity']:
+                n_users = analysis['user_activity']['total_users']
+                n_items = analysis['item_popularity']['total_items']
+                n_ratings = analysis['rating_distribution']['total_ratings']
+                total_possible = n_users * n_items
+                sparsity = 1 - (n_ratings / total_possible)
+                density = n_ratings / total_possible
+                
+                analysis['sparsity'] = {
+                    'n_users': int(n_users),
+                    'n_items': int(n_items),
+                    'n_ratings': int(n_ratings),
+                    'total_possible_ratings': int(total_possible),
+                    'sparsity': float(sparsity),
+                    'density': float(density),
+                    'sparsity_percentage': float(sparsity * 100),
+                    'density_percentage': float(density * 100)
+                }
+            
+            print()
+            print("✅ 完整資料集分析完成")
+        else:
+            # 使用樣本資料進行分析
+            print(f"📁 載入資料樣本 (前 {sample_size:,} 筆)...")
+            try:
+                ratings = self.load_ratings_sample(limit=sample_size)
+            except Exception as e:
+                print(f"❌ 載入資料時發生錯誤: {e}")
+                return {}
+            
+            if ratings is None or ratings.empty:
+                print("❌ 無法載入資料")
+                return {}
+            
+            print(f"✅ 成功載入 {len(ratings):,} 筆評分資料")
+            print()
+            
+            # 執行各項分析
+            analysis = {
+                'sample_size': len(ratings),
+                'rating_distribution': self.analyze_rating_distribution(ratings),
+                'user_activity': self.analyze_user_activity(ratings),
+                'item_popularity': self.analyze_item_popularity(ratings),
+                'sparsity': self.analyze_sparsity(ratings)
+            }
         
         return analysis
 
 
-def print_dataset_analysis(analyzer: DatasetAnalyzer, sample_size: int = 100000):
-    """打印資料集分析報告"""
-    analysis = analyzer.generate_full_analysis(sample_size)
+def print_dataset_analysis(analyzer: DatasetAnalyzer, sample_size: int = 100000, use_full_dataset: bool = False):
+    """打印資料集分析報告
+    
+    Args:
+        analyzer: 資料集分析器
+        sample_size: 樣本大小（當 use_full_dataset=False 時使用）
+        use_full_dataset: 是否使用完整資料集
+    """
+    analysis = analyzer.generate_full_analysis(sample_size=sample_size, use_full_dataset=use_full_dataset)
     
     if not analysis:
         print("❌ 分析失敗")

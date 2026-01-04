@@ -1071,7 +1071,7 @@
     "SVD_KNN_EXPAND": {
       "name": "SVD×KNN 網格搜索",
       "description": "同時測試所有 SVD 和 KNN 組合，找出最佳配對",
-      "enabled": false,
+      "enabled": true,
       "base_config": {
         "data_limit": null,
         "min_item_ratings": 0,
@@ -1399,6 +1399,735 @@
           "description": "2^13維度 × 2^6鄰居",
           "config": {
             "n_components": 8192,
+            "k_neighbors": 80
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_037",
+          "name": "SVD=2×KNN=40",
+          "description": "2^1維度 × 2^5鄰居",
+          "config": {
+            "n_components": 2,
+            "k_neighbors": 40
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_038",
+          "name": "SVD=2×KNN=45",
+          "description": "2^1維度 × 2^5鄰居",
+          "config": {
+            "n_components": 2,
+            "k_neighbors": 45
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_039",
+          "name": "SVD=2×KNN=50",
+          "description": "2^1維度 × 2^5鄰居",
+          "config": {
+            "n_components": 2,
+            "k_neighbors": 50
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_040",
+          "name": "SVD=2×KNN=55",
+          "description": "2^1維度 × 2^5鄰居",
+          "config": {
+            "n_components": 2,
+            "k_neighbors": 55
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_041",
+          "name": "SVD=2×KNN=60",
+          "description": "2^1維度 × 2^5鄰居",
+          "config": {
+            "n_components": 2,
+            "k_neighbors": 60
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_042",
+          "name": "SVD=2×KNN=65",
+          "description": "2^1維度 × 2^6鄰居",
+          "config": {
+            "n_components": 2,
+            "k_neighbors": 65
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_043",
+          "name": "SVD=2×KNN=70",
+          "description": "2^1維度 × 2^6鄰居",
+          "config": {
+            "n_components": 2,
+            "k_neighbors": 70
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_044",
+          "name": "SVD=2×KNN=75",
+          "description": "2^1維度 × 2^6鄰居",
+          "config": {
+            "n_components": 2,
+            "k_neighbors": 75
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_045",
+          "name": "SVD=2×KNN=80",
+          "description": "2^1維度 × 2^6鄰居",
+          "config": {
+            "n_components": 2,
+            "k_neighbors": 80
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_046",
+          "name": "SVD=4×KNN=40",
+          "description": "2^2維度 × 2^5鄰居",
+          "config": {
+            "n_components": 4,
+            "k_neighbors": 40
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_047",
+          "name": "SVD=4×KNN=45",
+          "description": "2^2維度 × 2^5鄰居",
+          "config": {
+            "n_components": 4,
+            "k_neighbors": 45
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_048",
+          "name": "SVD=4×KNN=50",
+          "description": "2^2維度 × 2^5鄰居",
+          "config": {
+            "n_components": 4,
+            "k_neighbors": 50
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_049",
+          "name": "SVD=4×KNN=55",
+          "description": "2^2維度 × 2^5鄰居",
+          "config": {
+            "n_components": 4,
+            "k_neighbors": 55
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_050",
+          "name": "SVD=4×KNN=60",
+          "description": "2^2維度 × 2^5鄰居",
+          "config": {
+            "n_components": 4,
+            "k_neighbors": 60
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_051",
+          "name": "SVD=4×KNN=65",
+          "description": "2^2維度 × 2^6鄰居",
+          "config": {
+            "n_components": 4,
+            "k_neighbors": 65
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_052",
+          "name": "SVD=4×KNN=70",
+          "description": "2^2維度 × 2^6鄰居",
+          "config": {
+            "n_components": 4,
+            "k_neighbors": 70
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_053",
+          "name": "SVD=4×KNN=75",
+          "description": "2^2維度 × 2^6鄰居",
+          "config": {
+            "n_components": 4,
+            "k_neighbors": 75
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_054",
+          "name": "SVD=4×KNN=80",
+          "description": "2^2維度 × 2^6鄰居",
+          "config": {
+            "n_components": 4,
+            "k_neighbors": 80
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_055",
+          "name": "SVD=8×KNN=40",
+          "description": "2^3維度 × 2^5鄰居",
+          "config": {
+            "n_components": 8,
+            "k_neighbors": 40
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_056",
+          "name": "SVD=8×KNN=45",
+          "description": "2^3維度 × 2^5鄰居",
+          "config": {
+            "n_components": 8,
+            "k_neighbors": 45
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_057",
+          "name": "SVD=8×KNN=50",
+          "description": "2^3維度 × 2^5鄰居",
+          "config": {
+            "n_components": 8,
+            "k_neighbors": 50
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_058",
+          "name": "SVD=8×KNN=55",
+          "description": "2^3維度 × 2^5鄰居",
+          "config": {
+            "n_components": 8,
+            "k_neighbors": 55
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_059",
+          "name": "SVD=8×KNN=60",
+          "description": "2^3維度 × 2^5鄰居",
+          "config": {
+            "n_components": 8,
+            "k_neighbors": 60
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_060",
+          "name": "SVD=8×KNN=65",
+          "description": "2^3維度 × 2^6鄰居",
+          "config": {
+            "n_components": 8,
+            "k_neighbors": 65
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_061",
+          "name": "SVD=8×KNN=70",
+          "description": "2^3維度 × 2^6鄰居",
+          "config": {
+            "n_components": 8,
+            "k_neighbors": 70
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_062",
+          "name": "SVD=8×KNN=75",
+          "description": "2^3維度 × 2^6鄰居",
+          "config": {
+            "n_components": 8,
+            "k_neighbors": 75
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_063",
+          "name": "SVD=8×KNN=80",
+          "description": "2^3維度 × 2^6鄰居",
+          "config": {
+            "n_components": 8,
+            "k_neighbors": 80
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_064",
+          "name": "SVD=16×KNN=40",
+          "description": "2^4維度 × 2^5鄰居",
+          "config": {
+            "n_components": 16,
+            "k_neighbors": 40
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_065",
+          "name": "SVD=16×KNN=45",
+          "description": "2^4維度 × 2^5鄰居",
+          "config": {
+            "n_components": 16,
+            "k_neighbors": 45
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_066",
+          "name": "SVD=16×KNN=50",
+          "description": "2^4維度 × 2^5鄰居",
+          "config": {
+            "n_components": 16,
+            "k_neighbors": 50
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_067",
+          "name": "SVD=16×KNN=55",
+          "description": "2^4維度 × 2^5鄰居",
+          "config": {
+            "n_components": 16,
+            "k_neighbors": 55
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_068",
+          "name": "SVD=16×KNN=60",
+          "description": "2^4維度 × 2^5鄰居",
+          "config": {
+            "n_components": 16,
+            "k_neighbors": 60
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_069",
+          "name": "SVD=16×KNN=65",
+          "description": "2^4維度 × 2^6鄰居",
+          "config": {
+            "n_components": 16,
+            "k_neighbors": 65
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_070",
+          "name": "SVD=16×KNN=70",
+          "description": "2^4維度 × 2^6鄰居",
+          "config": {
+            "n_components": 16,
+            "k_neighbors": 70
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_071",
+          "name": "SVD=16×KNN=75",
+          "description": "2^4維度 × 2^6鄰居",
+          "config": {
+            "n_components": 16,
+            "k_neighbors": 75
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_072",
+          "name": "SVD=16×KNN=80",
+          "description": "2^4維度 × 2^6鄰居",
+          "config": {
+            "n_components": 16,
+            "k_neighbors": 80
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_073",
+          "name": "SVD=32×KNN=40",
+          "description": "2^5維度 × 2^5鄰居",
+          "config": {
+            "n_components": 32,
+            "k_neighbors": 40
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_074",
+          "name": "SVD=32×KNN=45",
+          "description": "2^5維度 × 2^5鄰居",
+          "config": {
+            "n_components": 32,
+            "k_neighbors": 45
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_075",
+          "name": "SVD=32×KNN=50",
+          "description": "2^5維度 × 2^5鄰居",
+          "config": {
+            "n_components": 32,
+            "k_neighbors": 50
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_076",
+          "name": "SVD=32×KNN=55",
+          "description": "2^5維度 × 2^5鄰居",
+          "config": {
+            "n_components": 32,
+            "k_neighbors": 55
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_077",
+          "name": "SVD=32×KNN=60",
+          "description": "2^5維度 × 2^5鄰居",
+          "config": {
+            "n_components": 32,
+            "k_neighbors": 60
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_078",
+          "name": "SVD=32×KNN=65",
+          "description": "2^5維度 × 2^6鄰居",
+          "config": {
+            "n_components": 32,
+            "k_neighbors": 65
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_079",
+          "name": "SVD=32×KNN=70",
+          "description": "2^5維度 × 2^6鄰居",
+          "config": {
+            "n_components": 32,
+            "k_neighbors": 70
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_080",
+          "name": "SVD=32×KNN=75",
+          "description": "2^5維度 × 2^6鄰居",
+          "config": {
+            "n_components": 32,
+            "k_neighbors": 75
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_081",
+          "name": "SVD=32×KNN=80",
+          "description": "2^5維度 × 2^6鄰居",
+          "config": {
+            "n_components": 32,
+            "k_neighbors": 80
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_082",
+          "name": "SVD=64×KNN=40",
+          "description": "2^6維度 × 2^5鄰居",
+          "config": {
+            "n_components": 64,
+            "k_neighbors": 40
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_083",
+          "name": "SVD=64×KNN=45",
+          "description": "2^6維度 × 2^5鄰居",
+          "config": {
+            "n_components": 64,
+            "k_neighbors": 45
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_084",
+          "name": "SVD=64×KNN=50",
+          "description": "2^6維度 × 2^5鄰居",
+          "config": {
+            "n_components": 64,
+            "k_neighbors": 50
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_085",
+          "name": "SVD=64×KNN=55",
+          "description": "2^6維度 × 2^5鄰居",
+          "config": {
+            "n_components": 64,
+            "k_neighbors": 55
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_086",
+          "name": "SVD=64×KNN=60",
+          "description": "2^6維度 × 2^5鄰居",
+          "config": {
+            "n_components": 64,
+            "k_neighbors": 60
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_087",
+          "name": "SVD=64×KNN=65",
+          "description": "2^6維度 × 2^6鄰居",
+          "config": {
+            "n_components": 64,
+            "k_neighbors": 65
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_088",
+          "name": "SVD=64×KNN=70",
+          "description": "2^6維度 × 2^6鄰居",
+          "config": {
+            "n_components": 64,
+            "k_neighbors": 70
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_089",
+          "name": "SVD=64×KNN=75",
+          "description": "2^6維度 × 2^6鄰居",
+          "config": {
+            "n_components": 64,
+            "k_neighbors": 75
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_090",
+          "name": "SVD=64×KNN=80",
+          "description": "2^6維度 × 2^6鄰居",
+          "config": {
+            "n_components": 64,
+            "k_neighbors": 80
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_091",
+          "name": "SVD=128×KNN=40",
+          "description": "2^7維度 × 2^5鄰居",
+          "config": {
+            "n_components": 128,
+            "k_neighbors": 40
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_092",
+          "name": "SVD=128×KNN=45",
+          "description": "2^7維度 × 2^5鄰居",
+          "config": {
+            "n_components": 128,
+            "k_neighbors": 45
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_093",
+          "name": "SVD=128×KNN=50",
+          "description": "2^7維度 × 2^5鄰居",
+          "config": {
+            "n_components": 128,
+            "k_neighbors": 50
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_094",
+          "name": "SVD=128×KNN=55",
+          "description": "2^7維度 × 2^5鄰居",
+          "config": {
+            "n_components": 128,
+            "k_neighbors": 55
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_095",
+          "name": "SVD=128×KNN=60",
+          "description": "2^7維度 × 2^5鄰居",
+          "config": {
+            "n_components": 128,
+            "k_neighbors": 60
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_096",
+          "name": "SVD=128×KNN=65",
+          "description": "2^7維度 × 2^6鄰居",
+          "config": {
+            "n_components": 128,
+            "k_neighbors": 65
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_097",
+          "name": "SVD=128×KNN=70",
+          "description": "2^7維度 × 2^6鄰居",
+          "config": {
+            "n_components": 128,
+            "k_neighbors": 70
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_098",
+          "name": "SVD=128×KNN=75",
+          "description": "2^7維度 × 2^6鄰居",
+          "config": {
+            "n_components": 128,
+            "k_neighbors": 75
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_099",
+          "name": "SVD=128×KNN=80",
+          "description": "2^7維度 × 2^6鄰居",
+          "config": {
+            "n_components": 128,
+            "k_neighbors": 80
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_100",
+          "name": "SVD=256×KNN=40",
+          "description": "2^8維度 × 2^5鄰居",
+          "config": {
+            "n_components": 256,
+            "k_neighbors": 40
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_101",
+          "name": "SVD=256×KNN=45",
+          "description": "2^8維度 × 2^5鄰居",
+          "config": {
+            "n_components": 256,
+            "k_neighbors": 45
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_102",
+          "name": "SVD=256×KNN=50",
+          "description": "2^8維度 × 2^5鄰居",
+          "config": {
+            "n_components": 256,
+            "k_neighbors": 50
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_103",
+          "name": "SVD=256×KNN=55",
+          "description": "2^8維度 × 2^5鄰居",
+          "config": {
+            "n_components": 256,
+            "k_neighbors": 55
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_104",
+          "name": "SVD=256×KNN=60",
+          "description": "2^8維度 × 2^5鄰居",
+          "config": {
+            "n_components": 256,
+            "k_neighbors": 60
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_105",
+          "name": "SVD=256×KNN=65",
+          "description": "2^8維度 × 2^6鄰居",
+          "config": {
+            "n_components": 256,
+            "k_neighbors": 65
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_106",
+          "name": "SVD=256×KNN=70",
+          "description": "2^8維度 × 2^6鄰居",
+          "config": {
+            "n_components": 256,
+            "k_neighbors": 70
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_107",
+          "name": "SVD=256×KNN=75",
+          "description": "2^8維度 × 2^6鄰居",
+          "config": {
+            "n_components": 256,
+            "k_neighbors": 75
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_108",
+          "name": "SVD=256×KNN=80",
+          "description": "2^8維度 × 2^6鄰居",
+          "config": {
+            "n_components": 256,
+            "k_neighbors": 80
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_109",
+          "name": "SVD=512×KNN=40",
+          "description": "2^9維度 × 2^5鄰居",
+          "config": {
+            "n_components": 512,
+            "k_neighbors": 40
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_110",
+          "name": "SVD=512×KNN=45",
+          "description": "2^9維度 × 2^5鄰居",
+          "config": {
+            "n_components": 512,
+            "k_neighbors": 45
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_111",
+          "name": "SVD=512×KNN=50",
+          "description": "2^9維度 × 2^5鄰居",
+          "config": {
+            "n_components": 512,
+            "k_neighbors": 50
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_112",
+          "name": "SVD=512×KNN=55",
+          "description": "2^9維度 × 2^5鄰居",
+          "config": {
+            "n_components": 512,
+            "k_neighbors": 55
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_113",
+          "name": "SVD=512×KNN=60",
+          "description": "2^9維度 × 2^5鄰居",
+          "config": {
+            "n_components": 512,
+            "k_neighbors": 60
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_114",
+          "name": "SVD=512×KNN=65",
+          "description": "2^9維度 × 2^6鄰居",
+          "config": {
+            "n_components": 512,
+            "k_neighbors": 65
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_115",
+          "name": "SVD=512×KNN=70",
+          "description": "2^9維度 × 2^6鄰居",
+          "config": {
+            "n_components": 512,
+            "k_neighbors": 70
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_116",
+          "name": "SVD=512×KNN=75",
+          "description": "2^9維度 × 2^6鄰居",
+          "config": {
+            "n_components": 512,
+            "k_neighbors": 75
+          }
+        },
+        {
+          "id": "SVD_KNN_EXPAND_117",
+          "name": "SVD=512×KNN=80",
+          "description": "2^9維度 × 2^6鄰居",
+          "config": {
+            "n_components": 512,
             "k_neighbors": 80
           }
         }

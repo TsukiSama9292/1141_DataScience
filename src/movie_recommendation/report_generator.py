@@ -85,40 +85,39 @@ class ReportGenerator:
         log_dir = Path('log')
         expand_results = []
         
-        # 載入所有 SVD_KNN_EXPAND 結果 (1-36)
-        for i in range(1, 37):
-            config_name = f'SVD_KNN_EXPAND_{i:03d}'
-            json_file = log_dir / f'{config_name}.json'
-            
-            if json_file.exists():
-                try:
-                    with open(json_file, 'r') as f:
-                        data = json.load(f)
-                    
-                    # 從配置中讀取實際的參數值
-                    config = data.get('config', {})
-                    n_components = config.get('n_components')
-                    k_neighbors = config.get('k_neighbors')
-                    
-                    # 跳過無效配置
-                    if n_components is None or k_neighbors is None:
-                        continue
-                    
-                    metrics = data.get('metrics', {})
-                    time_records = data.get('time_records', {})
-                    
-                    expand_results.append({
-                        'config_name': config_name,
-                        'n_components': n_components,
-                        'k_neighbors': k_neighbors,
-                        'hit_rate': metrics.get('hit_rate', 0),
-                        'ndcg': metrics.get('ndcg', 0),
-                        'rmse': metrics.get('rmse', 0),
-                        'total_time': sum(time_records.values()) if time_records else 0
-                    })
-                except Exception as e:
-                    print(f"⚠️ 無法讀取 {json_file}: {e}")
+        # 動態載入所有 SVD_KNN_EXPAND 結果
+        expand_files = sorted(log_dir.glob('SVD_KNN_EXPAND_*.json'))
         
+        for json_file in expand_files:
+            try:
+                with open(json_file, 'r') as f:
+                    data = json.load(f)
+                
+                # 從配置中讀取實際的參數值
+                config = data.get('config', {})
+                n_components = config.get('n_components')
+                k_neighbors = config.get('k_neighbors')
+                
+                # 跳過無效配置
+                if n_components is None or k_neighbors is None:
+                    continue
+                
+                metrics = data.get('metrics', {})
+                time_records = data.get('time_records', {})
+                
+                expand_results.append({
+                    'config_name': json_file.stem,
+                    'n_components': n_components,
+                    'k_neighbors': k_neighbors,
+                    'hit_rate': metrics.get('hit_rate', 0),
+                    'ndcg': metrics.get('ndcg', 0),
+                    'rmse': metrics.get('rmse', 0),
+                    'total_time': sum(time_records.values()) if time_records else 0
+                })
+            except Exception as e:
+                print(f"⚠️ 無法讀取 {json_file}: {e}")
+        
+        print(f"ℹ️  載入了 {len(expand_results)} 個 SVD_KNN_EXPAND 實驗結果")
         return expand_results
     
     def _load_knn_baseline_results(self):
@@ -514,18 +513,6 @@ class ReportGenerator:
         print(f"   - K={k_values[0]}: 平均 Hit Rate = {k_avg_hit_rates[0]:.4f}")
         print(f"   - K={k_values[-1]}: 平均 Hit Rate = {k_avg_hit_rates[-1]:.4f}")
         
-        # 建議
-        print(f"\n💡 建議:")
-        if svd_avg_hit_rates[-1] > svd_avg_hit_rates[0] and (svd_avg_hit_rates[-1] - svd_avg_hit_rates[-2]) > 0.001:
-            print(f"   ⚠️  SVD 維度仍在改善，建議測試更大的維度（如 512, 1024）")
-        else:
-            print(f"   ✅ SVD 維度已達收斂，當前範圍已足夠")
-        
-        if k_avg_hit_rates[-1] > k_avg_hit_rates[0] and (k_avg_hit_rates[-1] - k_avg_hit_rates[-2]) > 0.001:
-            print(f"   ⚠️  KNN K值仍在改善，建議測試更大的 K 值（如 128, 256）")
-        else:
-            print(f"   ✅ KNN K值已達收斂，當前範圍已足夠")
-        
         return True
     
     def generate_expand_heatmap(self) -> bool:
@@ -564,11 +551,13 @@ class ReportGenerator:
         ax1.set_ylabel('SVD Dimension', fontsize=12)
         ax1.set_title('Hit Rate@10', fontsize=14, fontweight='bold')
         
-        # 添加數值標註
+        # 添加數值標註（根據矩陣大小調整字體）
+        cell_count = len(svd_dims) * len(k_values)
+        fontsize = 9 if cell_count <= 100 else (7 if cell_count <= 200 else 6)
         for i in range(len(svd_dims)):
             for j in range(len(k_values)):
                 text = ax1.text(j, i, f'{hit_rate_matrix[i, j]:.3f}',
-                               ha="center", va="center", color="black", fontsize=9)
+                               ha="center", va="center", color="black", fontsize=fontsize)
         
         plt.colorbar(im1, ax=ax1, label='Hit Rate@10')
         
@@ -582,11 +571,11 @@ class ReportGenerator:
         ax2.set_ylabel('SVD Dimension', fontsize=12)
         ax2.set_title('NDCG@10', fontsize=14, fontweight='bold')
         
-        # 添加數值標註
+        # 添加數值標註（使用相同的字體大小）
         for i in range(len(svd_dims)):
             for j in range(len(k_values)):
                 text = ax2.text(j, i, f'{ndcg_matrix[i, j]:.3f}',
-                               ha="center", va="center", color="black", fontsize=9)
+                               ha="center", va="center", color="black", fontsize=fontsize)
         
         plt.colorbar(im2, ax=ax2, label='NDCG@10')
         
@@ -969,9 +958,10 @@ class ReportGenerator:
             else:
                 if use_full_dataset:
                     print("📊 分析完整資料集統計特徵（使用分批處理）...")
+                    dataset_stats = self.dataset_analyzer.generate_full_analysis(use_full_dataset=True)
                 else:
                     print("📊 分析資料集統計特徵（使用樣本）...")
-                dataset_stats = self.dataset_analyzer.generate_full_analysis()
+                    dataset_stats = self.dataset_analyzer.generate_full_analysis(sample_size=100000)
                 if dataset_stats:
                     # 過濾掉不能序列化的字段（以 _ 開頭的內部數據）
                     def filter_internal_fields(obj):
