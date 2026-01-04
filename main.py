@@ -39,6 +39,7 @@ sys.path.insert(0, str(Path(__file__).parent / 'src'))
 from movie_recommendation.experiment_runner import ExperimentRunner
 from movie_recommendation.config_loader import ConfigLoader
 from movie_recommendation.utils import setup_logging
+from movie_recommendation.hybrid_engine import GenomeHybridModel
 
 
 def list_stages(config_path: Optional[Path] = None):

@@ -1435,7 +1435,7 @@
     },
     "OPT": {
       "name": "優化策略測試",
-      "description": "測試時間衰減和TF-IDF",
+      "description": "測試時間衰減、TF-IDF和融入Tag優化",
       "enabled": true,
       "base_config": {
         "data_limit": null,
@@ -1461,6 +1461,69 @@
           "name": "TF-IDF",
           "config": {
             "use_tfidf": true
+          }
+        },
+        {
+          "id": "OPT_003",
+          "name": "Genome混合模型 (冷啟動優化)",
+          "config": {
+            "use_genome_hybrid": true,
+            "genome_alpha": 0.5,
+            "cold_start_threshold": 120
+          }
+        },
+        {
+          "id": "OPT_004",
+          "name": "純Genome模型",
+          "config": {
+            "use_genome_hybrid": true,
+            "genome_alpha": 1.0,
+            "cold_start_threshold": 5000
+          }
+        },
+        {
+          "id": "OPT_005",
+          "name": "Genome混合模型(Light weight)",
+          "config": {
+            "use_genome_hybrid": true,
+            "genome_alpha": 0.3,
+            "cold_start_threshold": 120
+          }
+        },
+        {
+          "id": "OPT_006",
+          "name": "Genome混合模型(Heavy weight)",
+          "config": {
+            "use_genome_hybrid": true,
+            "genome_alpha": 0.75,
+            "cold_start_threshold": 120
+          }
+        },
+        {
+          "id": "OPT_007",
+          "name": "Genome混合模型(Low threshold)",
+          "config": {
+            "use_genome_hybrid": true,
+            "genome_alpha": 0.5,
+            "cold_start_threshold": 50
+          }
+        },
+        {
+          "id": "OPT_008",
+          "name": "Genome混合模型(高於中位數)",
+          "config": {
+            "use_genome_hybrid": true,
+            "genome_alpha": 0.5,
+            "cold_start_threshold": 70
+          }
+        },
+        {
+          "id": "OPT_009",
+          "name": "Genome混合模型(High threshold)",
+          "config": {
+            "use_genome_hybrid": true,
+            "genome_alpha": 0.5,
+            "cold_start_threshold": 200
           }
         }
       ]
