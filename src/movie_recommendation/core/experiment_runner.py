@@ -10,9 +10,9 @@ from pathlib import Path
 from typing import Optional, List, Dict, Any
 import logging
 
-from .config_loader import ConfigLoader, ExperimentSpec
+from ..config.loader import ConfigLoader, ExperimentSpec
 from .experiment import Experiment, ExperimentConfig
-from .utils import setup_logging
+from ..utils.common import setup_logging
 
 logger = logging.getLogger(__name__)
 

@@ -311,7 +311,7 @@ class DatasetAnalyzer:
             data_loader: DataLoader 實例，如果為 None 則創建新實例
         """
         if data_loader is None:
-            from .data_loader import DataLoader
+            from ..data.loader import DataLoader
             self.data_loader = DataLoader()
         else:
             self.data_loader = data_loader
@@ -721,13 +721,13 @@ def print_dataset_analysis(analyzer: DatasetAnalyzer, sample_size: int = 100000,
         print(f"總使用者數: {stats['total_users']:,}")
         print(f"平均每人評分數: {stats['mean_ratings_per_user']:.1f}")
         print(f"中位數: {stats['median_ratings_per_user']:.0f}")
-        print(f"標準差: {stats['std']:.1f}")
+        print(f"標準差: {stats['std_ratings_per_user']:.1f}")
         print(f"最多評分: {stats['max_ratings']:,}")
         print(f"最少評分: {stats['min_ratings']:,}")
         print(f"\n長尾效應:")
-        print(f"  前 20% 活躍用戶貢獻 {stats['top_20_percent_contribution']*100:.1f}% 的評分")
+        print(f"  前 20% 活躍用戶貢獻 {stats['long_tail']['top_20_percent_ratio']*100:.1f}% 的評分")
         print(f"\n活躍度分位數:")
-        for p, v in stats['percentiles'].items():
+        for p, v in stats['quantiles'].items():
             print(f"  {p}: {v:.0f} 評分")
         print()
     
@@ -739,16 +739,16 @@ def print_dataset_analysis(analyzer: DatasetAnalyzer, sample_size: int = 100000,
         print(f"總電影數: {stats['total_items']:,}")
         print(f"平均每部電影評分數: {stats['mean_ratings_per_item']:.1f}")
         print(f"中位數: {stats['median_ratings_per_item']:.0f}")
-        print(f"標準差: {stats['std']:.1f}")
+        print(f"標準差: {stats['std_ratings_per_item']:.1f}")
         print(f"最多評分: {stats['max_ratings']:,}")
         print(f"最少評分: {stats['min_ratings']:,}")
         print(f"\n冷啟動問題:")
-        for threshold, data in stats['cold_items'].items():
-            print(f"  評分 {threshold}: {data['count']:,} 部 ({data['percentage']:.2f}%)")
-        print(f"\n長尾效應:")
-        print(f"  前 20% 熱門電影貢獻 {stats['top_20_percent_contribution']*100:.1f}% 的評分")
+        cold_start = stats['cold_start']
+        print(f"  僅 1 次評分: {cold_start['items_with_1_rating']:,} 部")
+        print(f"  ≤5 次評分: {cold_start['items_with_le_5_ratings']:,} 部 ({cold_start['cold_start_ratio_5']*100:.2f}%)")
+        print(f"  ≤10 次評分: {cold_start['items_with_le_10_ratings']:,} 部 ({cold_start['cold_start_ratio_10']*100:.2f}%)")
         print(f"\n流行度分位數:")
-        for p, v in stats['percentiles'].items():
+        for p, v in stats['quantiles'].items():
             print(f"  {p}: {v:.0f} 評分")
         print()
     

@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import matplotlib
 import numpy as np
 
-from .analysis import ExperimentAnalyzer, DatasetAnalyzer
+from .analyzer import ExperimentAnalyzer, DatasetAnalyzer
 
 # 設置中文字體
 matplotlib.rcParams['font.sans-serif'] = ['DejaVu Sans', 'Arial Unicode MS', 'sans-serif']

@@ -8,12 +8,12 @@ from typing import Optional, Dict
 import logging
 import inspect
 from pathlib import Path
-from .data_loader import DataLoader
-from .feature_engineering import FeatureEngineer
-from .models import KNNRecommender
-from .evaluation import Evaluator
-from .utils import TimeTracker, setup_logging, log_metrics
-from .hybrid_engine import GenomeHybridModel
+from ..data.loader import DataLoader
+from ..data.feature_engineering import FeatureEngineer
+from ..models.knn import KNNRecommender
+from ..evaluation.evaluator import Evaluator
+from ..utils.common import TimeTracker, setup_logging, log_metrics
+from ..models.hybrid import GenomeHybridModel
 
 logger = logging.getLogger(__name__)
 

@@ -391,7 +391,7 @@ wheels = [
 
 [[package]]
 name = "movie-recommendation"
-version = "0.0.1"
+version = "2.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "ipykernel" },

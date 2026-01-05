@@ -37,7 +37,8 @@ class ConfigLoader:
             config_path: 配置文件路径，默认为 configs/experiments.json
         """
         if config_path is None:
-            config_path = Path(__file__).parent.parent.parent / "configs" / "experiments.json"
+            # 從 src/movie_recommendation/config/loader.py -> 項目根目錄
+            config_path = Path(__file__).parent.parent.parent.parent / "configs" / "experiments.json"
         
         self.config_path = Path(config_path)
         self._raw_config = None

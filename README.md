@@ -790,14 +790,31 @@ uv sync
 ### 執行實驗
 
 ```bash
-# 方式1：執行所有實驗並生成報告
-uv run python main.py
+# 1. 執行實驗
+uv run python main.py                    # 執行所有實驗並生成報告
+uv run python main.py --stage FILTER     # 只執行特定階段
+uv run python main.py --force            # 強制重新運行已完成的實驗
 
-# 方式2：只執行特定階段
-uv run python main.py --stage SVD_KNN_GRID
+# 2. 生成報告
+uv run python main.py --report-only      # 只生成報告（不運行實驗）
 
-# 方式3：只生成報告（使用已完成的實驗）
-uv run python main.py --report-only
+# 3. 分析工具
+uv run python main.py analyze progress   # 顯示執行進度
+uv run python main.py analyze dataset    # 分析資料集統計
+uv run python main.py analyze svd        # SVD 維度分析
+uv run python main.py analyze knn        # KNN K 值分析
+uv run python main.py analyze all        # 執行所有分析
+
+# 4. 配置生成
+uv run python main.py grid --dry-run     # 預覽網格配置
+uv run python main.py grid --svd-values 2 4 8 --knn-values 5 10 15  # 生成網格配置
+
+# 5. 查看幫助
+uv run python main.py --help             # 主程式幫助
+uv run python main.py analyze --help     # 分析工具幫助
+uv run python main.py grid --help        # 配置生成幫助
+uv run python main.py --list-stages      # 列出所有階段
+uv run python main.py --list-experiments # 列出所有實驗
 ```
 
 ### 查看結果
@@ -820,23 +837,40 @@ cat reports/summary.md
 ```
 1141_DataScience/
 ├── README.md                          # 本檔案
-├── main.py                            # 主執行入口
+├── main.py                            # 統一入口（實驗執行、分析、報告生成）
 ├── pyproject.toml                     # 依賴配置（uv）
 │
 ├── configs/
 │   └── experiments.json               # 實驗配置（245 個實驗）
 │
-├── src/movie_recommendation/          # 核心代碼
-│   ├── data_loader.py                 # 資料載入（MovieLens 20M）
-│   ├── feature_engineering.py         # 特徵工程（SVD 降維）
-│   ├── models.py                      # KNN 推薦模型（含預計算優化）
-│   ├── evaluation.py                  # 評估指標（Hit Rate, NDCG, RMSE）
-│   ├── experiment.py                  # 實驗執行器
-│   ├── experiment_runner.py           # 多階段實驗管理
-│   ├── config_loader.py               # 配置載入器
-│   ├── analysis.py                    # 結果分析
-│   ├── report_generator.py            # 報告生成（含熱力圖）
-│   └── utils.py                       # 工具函數
+├── src/movie_recommendation/          # 核心代碼（模組化架構）
+│   ├── __init__.py                    # 套件初始化
+│   │
+│   ├── core/                          # 實驗核心
+│   │   ├── experiment.py              # 實驗執行器
+│   │   └── experiment_runner.py       # 多階段實驗管理
+│   │
+│   ├── data/                          # 資料處理
+│   │   ├── loader.py                  # 資料載入（MovieLens 20M）
+│   │   └── feature_engineering.py     # 特徵工程（SVD 降維）
+│   │
+│   ├── models/                        # 推薦模型
+│   │   ├── knn.py                     # KNN 推薦模型（含預計算優化）
+│   │   └── hybrid.py                  # Genome 混合模型
+│   │
+│   ├── evaluation/                    # 評估系統
+│   │   └── evaluator.py               # 評估指標（Hit Rate, NDCG, RMSE）
+│   │
+│   ├── analysis/                      # 結果分析
+│   │   ├── analyzer.py                # 實驗結果分析器
+│   │   └── report_generator.py        # 報告生成（含熱力圖）
+│   │
+│   ├── config/                        # 配置管理
+│   │   └── loader.py                  # 配置載入器
+│   │
+│   └── utils/                         # 工具函數
+│       ├── common.py                  # 通用工具（日誌、時間追蹤）
+│       └── cli.py                     # CLI 工具函數（分析、報告、配置生成）
 │
 ├── log/                               # 實驗結果（JSON）
 │   ├── FILTER_001.json ~ 006.json     # 過濾階段（6個）
@@ -844,25 +878,20 @@ cat reports/summary.md
 │   ├── SVD_KNN_GRID_001.json ~ 100    # 網格搜索（100個）
 │   ├── SVD_KNN_EXPAND_001.json ~ 117  # 擴展搜索（117個）
 │   ├── BIAS_001.json ~ 002.json       # 偏差測試（2個）
-│   └── OPT_001.json ~ 002.json        # 優化測試（2個）
+│   └── OPT_001.json ~ 010.json        # 優化測試（10個）
 │
-├── reports/                           # 報告與可視化
-│   ├── summary.md                     # 實驗摘要表格
-│   ├── dataset_statistics_full.json   # 完整資料集統計（20M 評分）
-│   └── figures/                       # 可視化圖表
-│       ├── svd_knn_grid_heatmap.png       # SVD×KNN 網格熱力圖 ⭐
-│       ├── svd_knn_expand_heatmap.png     # 擴展搜索熱力圖
-│       ├── svd_dimension_analysis.png     # SVD 維度分析
-│       ├── knn_k_value_analysis.png       # KNN K 值分析
-│       ├── stage_comparison.png           # 階段對比
-│       ├── data_rating_distribution_full.png  # 評分分布
-│       ├── data_user_activity_long_tail_full.png  # 使用者活躍度
-│       └── data_movie_popularity_long_tail_full.png  # 電影流行度
-│
-└── tools/                             # 工具腳本
-    ├── generate_grid_config.py        # 網格配置生成器
-    ├── expand_low_dim_high_knn.py     # 擴展實驗生成器
-    └── ...
+└── reports/                           # 報告與可視化
+    ├── summary.md                     # 實驗摘要表格
+    ├── dataset_statistics_full.json   # 完整資料集統計（20M 評分）
+    └── figures/                       # 可視化圖表
+        ├── svd_knn_grid_heatmap.png       # SVD×KNN 網格熱力圖 ⭐
+        ├── svd_knn_expand_heatmap.png     # 擴展搜索熱力圖
+        ├── svd_dimension_analysis.png     # SVD 維度分析
+        ├── knn_k_value_analysis.png       # KNN K 值分析
+        ├── stage_comparison.png           # 階段對比
+        ├── data_rating_distribution_full.png  # 評分分布
+        ├── data_user_activity_long_tail_full.png  # 使用者活躍度
+        └── data_movie_popularity_long_tail_full.png  # 電影流行度
 ```
 
 ---

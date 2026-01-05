@@ -1,30 +1,31 @@
 #!/usr/bin/env python3
 """
-電影推薦系統實驗執行器 v2.0
+電影推薦系統主程序 v2.1.0
 
-使用 JSON 配置檔案驅動的自動化實驗執行系統。
+使用 JSON 配置檔案驅動的自動化實驗執行系統，整合了所有命令行工具。
 
 主要功能：
 - 從 JSON 配置檔案載入實驗定義
 - 自動執行實驗並追蹤進度
 - 支援最佳配置自動級聯到後續階段
 - 生成完整的分析報告和可視化
+- 提供實驗分析和配置生成工具
 
-新特性：
-- 靈活的 JSON 配置格式
-- 支援階段級別的配置管理
-- 自動檢測已完成的實驗
-- 智慧的最佳配置級聯機制
-
-Usage:
-  python main.py                           # 執行所有啟用的實驗階段（自動級聯最佳配置）
+命令：
+  python main.py                           # 執行所有啟用的實驗階段
   python main.py --stage SVD_KNN_GRID      # 只執行特定階段
-  python main.py --stage DS FILTER         # 執行多個階段
   python main.py --list-stages             # 列出所有可用階段
   python main.py --list-experiments        # 列出所有實驗
   python main.py --force                   # 強制重新運行所有實驗
   python main.py --report-only             # 只生成報告，不運行實驗
-  python main.py --config custom.json      # 使用自訂配置檔案
+  
+  # 分析工具
+  python main.py analyze progress          # 顯示執行進度
+  python main.py analyze dataset           # 分析資料集統計
+  
+  # 配置生成
+  python main.py grid --dry-run            # 預覽網格配置
+  python main.py grid --svd-values 2 4 8   # 生成網格配置
 """
 
 import sys
@@ -36,9 +37,10 @@ from typing import Optional, List
 # 添加 src 到路径
 sys.path.insert(0, str(Path(__file__).parent / 'src'))
 
-from movie_recommendation.experiment_runner import ExperimentRunner
-from movie_recommendation.config_loader import ConfigLoader
-from movie_recommendation.utils import setup_logging
+from movie_recommendation.core.experiment_runner import ExperimentRunner
+from movie_recommendation.config.loader import ConfigLoader
+from movie_recommendation.utils.common import setup_logging
+from movie_recommendation.utils import cli
 
 
 def list_stages(config_path: Optional[Path] = None):
@@ -100,7 +102,7 @@ def generate_reports():
     print("="*80 + "\n")
     
     try:
-        from movie_recommendation.report_generator import generate_report
+        from movie_recommendation.analysis.report_generator import generate_report
         
         # 生成可視化報告
         print("📊 生成可視化報告...")
@@ -142,16 +144,77 @@ def generate_reports():
 
 def main():
     """主函數"""
+    # 檢查是否為子命令模式
+    if len(sys.argv) >= 2:
+        subcommand = sys.argv[1]
+        
+        # 分析命令
+        if subcommand == 'analyze':
+            if len(sys.argv) < 3:
+                print("使用方法: python main.py analyze <command>")
+                print("可用命令: progress, svd, knn, dataset, all")
+                sys.exit(1)
+            
+            # 構建參數解析器
+            parser = argparse.ArgumentParser(description='分析實驗結果')
+            parser.add_argument('_subcommand', help=argparse.SUPPRESS)  # 捕獲 'analyze'
+            parser.add_argument('command', choices=['progress', 'svd', 'knn', 'dataset', 'all'])
+            parser.add_argument('--log-dir', default='log', help='日誌目錄路徑')
+            parser.add_argument('--run-dir', default='run', help='配置文件目錄路徑')
+            parser.add_argument('--sample-size', type=int, default=100000, help='資料集分析樣本大小')
+            
+            args = parser.parse_args()
+            cli.analyze_experiments(args.command, args.log_dir, args.run_dir, args.sample_size)
+            return
+        
+        # 網格配置生成命令
+        elif subcommand == 'grid':
+            parser = argparse.ArgumentParser(description='生成網格搜索配置')
+            parser.add_argument('_subcommand', help=argparse.SUPPRESS)  # 捕獲 'grid'
+            parser.add_argument('--config', type=Path, default='configs/experiments.json',
+                                help='配置文件路徑')
+            parser.add_argument('--stage-id', default='SVD_KNN_GRID', help='階段ID')
+            parser.add_argument('--svd-values', type=int, nargs='+', 
+                                help='SVD 維度列表（例如：2 4 8 16）')
+            parser.add_argument('--knn-values', type=int, nargs='+',
+                                help='KNN 鄰居數列表（例如：5 10 15 20）')
+            parser.add_argument('--no-skip-existing', action='store_true',
+                                help='不跳過已存在的實驗')
+            parser.add_argument('--dry-run', action='store_true',
+                                help='只生成預覽，不保存')
+            
+            args = parser.parse_args()
+            cli.update_config_with_grid(
+                config_path=args.config,
+                svd_values=args.svd_values,
+                knn_values=args.knn_values,
+                stage_id=args.stage_id,
+                skip_existing=not args.no_skip_existing,
+                dry_run=args.dry_run
+            )
+            return
+    
+    # 原有的主程序邏輯
     parser = argparse.ArgumentParser(
-        description='電影推薦系統實驗執行器 v2.0',
+        description='電影推薦系統主程序 v2.1',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 範例:
+  # 實驗執行
   python main.py                          # 執行所有實驗（自動級聯）
   python main.py --stage SVD_KNN_GRID     # 只執行網格搜索階段
   python main.py --list-stages            # 列出所有階段
   python main.py --force                  # 強制重新運行所有實驗
   python main.py --report-only            # 只生成報告
+  
+  # 分析工具
+  python main.py analyze progress         # 顯示執行進度
+  python main.py analyze dataset          # 分析資料集統計
+  python main.py analyze all              # 執行所有分析
+  
+  # 配置生成
+  python main.py grid --dry-run           # 預覽網格配置
+  python main.py grid --svd-values 2 4 8  # 生成網格配置
         """
     )
     
@@ -221,7 +284,7 @@ def main():
     runner = ExperimentRunner(config_path=args.config)
     
     print("\n" + "="*80)
-    print("🎬 電影推薦系統實驗執行器 v2.0")
+    print("🎬 電影推薦系統主程序 v2.1")
     print("="*80)
     
     # 顯示配置資訊
