@@ -228,7 +228,7 @@ $$\hat{r}_{ui} = \frac{\sum_{v \in N_k(u)} \text{sim}(u,v) \cdot r_{vi}}{\sum_{v
 其中：
 - $\hat{r}_{ui}$：使用者 $u$ 對項目 $i$ 的預測評分
 - $N_k(u)$：使用者 $u$ 的 $k$ 個最近鄰居
-- $\text{sim}(u,v)$：使用者 $u$ 與 $v$ 的餘弦相似度 = $1 - \text{cosine\_distance}$
+- $\text{sim}(u,v)$：使用者 $u$ 與 $v$ 的餘弦相似度 = $1 - \text{cosine distance}$
 - $r_{vi}$：鄰居 $v$ 對項目 $i$ 的實際評分
 
 **Lazy Learning 特性**：
@@ -373,7 +373,7 @@ for user_id in test_users:
 
 **餘弦相似度公式**：
 
-$$\text{sim}(u, v) = 1 - \text{cosine\_distance}(u, v) = 1 - \left(1 - \frac{\mathbf{u} \cdot \mathbf{v}}{\|\mathbf{u}\| \|\mathbf{v}\|}\right) = \frac{\mathbf{u} \cdot \mathbf{v}}{\|\mathbf{u}\| \|\mathbf{v}\|}$$
+$$\text{sim}(u, v) = 1 - \text{cosine distance}(u, v) = 1 - \left(1 - \frac{\mathbf{u} \cdot \mathbf{v}}{\|\mathbf{u}\| \|\mathbf{v}\|}\right) = \frac{\mathbf{u} \cdot \mathbf{v}}{\|\mathbf{u}\| \|\mathbf{v}\|}$$
 
 其中 $\mathbf{u}$ 和 $\mathbf{v}$ 是使用者的評分向量（稀疏矩陣）。
 
@@ -502,13 +502,13 @@ class KNNRecommender:
 3. **快取優化的數學原理**：
    
    **無快取（動態計算）**：
-   $$T_{\text{eval}} = N_{\text{users}} \times N_{\text{calls}} \times O(n \times d) = 20000 \times 2 \times O(138493 \times 1024)$$
+   $$T_{\mathrm{eval}} = N_{\mathrm{users}} \times N_{\mathrm{calls}} \times O(n \times d) = 20000 \times 2 \times O(138493 \times 1024)$$
    
    **有快取（預計算）**：
-   $$T_{\text{precompute}} = O(n^2 \times d) = O(20000^2 \times 1024)$$
-   $$T_{\text{eval}} = N_{\text{users}} \times N_{\text{calls}} \times O(1) = 20000 \times 2 \times O(1)$$
+   $$T_{\mathrm{precompute}} = O(n^2 \times d) = O(20000^2 \times 1024)$$
+   $$T_{\mathrm{eval}} = N_{\mathrm{users}} \times N_{\mathrm{calls}} \times O(1) = 20000 \times 2 \times O(1)$$
    
-   **當** $N_{\text{users}} \times N_{\text{calls}} > n$ **時，預計算更優**（本研究: 40K > 20K ✅）
+   **當** $N_{\mathrm{users}} \times N_{\mathrm{calls}} > n$ **時，預計算更優**（本研究: 40K > 20K ✅）
 
 4. **工程權衡**：
    - ✅ **≤20K 使用者**: 全域快取可行（<8 GB RAM）
