@@ -7,6 +7,7 @@ import numpy as np
 import kagglehub
 from typing import Tuple, Optional
 import logging
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -163,3 +164,50 @@ class DataLoader:
         )
         
         return filtered_ratings
+
+    def get_genome_path(self) -> Optional[str]:
+        """
+        嘗試尋找並回傳 genome-scores.csv 的絕對路徑
+        支援遞迴搜尋、不同命名格式 (底線/連字號) 與大小寫忽略
+        """
+        # 1. 確保資料已下載
+        if self.path is None:
+            logger.info("檢查基因資料中，正在確認資料集下載狀態...")
+            self.path = kagglehub.dataset_download(self.dataset_name)
+            
+        logger.info(f"正在搜尋基因檔案，搜尋根目錄: {self.path}")
+        
+        # 2. 定義目標檔名 (轉成小寫以方便比對)
+        # Kaggle 資料集有時候會改檔名，例如把連字號改成底線
+        target_names = {'genome-scores.csv', 'genome_scores.csv', 'genome_scores.csv.zip'}
+        
+        # 3. 使用 os.walk 進行地毯式搜索
+        for root, dirs, files in os.walk(self.path):
+            for filename in files:
+                # 轉小寫比對，增加容錯率
+                if filename.lower() in target_names:
+                    full_path = os.path.join(root, filename)
+                    logger.info(f"✅ 成功定位基因檔案: {full_path}")
+                    return full_path
+        
+        # 4. 如果跑到這裡代表真的沒找到，印出目錄結構幫助除錯
+        logger.error("❌ 找不到目標檔案。以下是搜尋過的目錄結構摘要:")
+        try:
+            # 只印出前 3 層目錄結構，避免 Log 爆炸
+            level_limit = 3
+            root_depth = self.path.count(os.sep)
+            
+            for root, dirs, files in os.walk(self.path):
+                current_depth = root.count(os.sep)
+                if current_depth - root_depth < level_limit:
+                    indent = "  " * (current_depth - root_depth)
+                    logger.error(f"{indent}📂 {os.path.basename(root)}/")
+                    for f in files[:5]: # 每個目錄只列出前 5 個檔案
+                        logger.error(f"{indent}  📄 {f}")
+                    if len(files) > 5:
+                        logger.error(f"{indent}  ... (還有 {len(files)-5} 個檔案)")
+        except Exception as e:
+            logger.error(f"無法列印目錄結構: {e}")
+            
+        return None
+

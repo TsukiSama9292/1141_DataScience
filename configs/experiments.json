@@ -2164,7 +2164,7 @@
     },
     "OPT": {
       "name": "優化策略測試",
-      "description": "測試時間衰減和TF-IDF",
+      "description": "測試時間衰減和TF-IDF與混合Genome",
       "enabled": true,
       "base_config": {
         "data_limit": null,
@@ -2190,6 +2190,78 @@
           "name": "TF-IDF",
           "config": {
             "use_tfidf": true
+          }
+        },
+        {
+          "id": "OPT_003",
+          "name": "Genome混合模型 (冷啟動優化)",
+          "config": {
+            "use_genome_hybrid": true,
+            "genome_alpha": 0.5,
+            "cold_start_threshold": 70
+          }
+        },
+        {
+          "id": "OPT_004",
+          "name": "純Genome模型",
+          "config": {
+            "use_genome_hybrid": true,
+            "genome_alpha": 1.0,
+            "cold_start_threshold": 10000
+          }
+        },
+        {
+          "id": "OPT_005",
+          "name": "Genome混合模型(Light weight)",
+          "config": {
+            "use_genome_hybrid": true,
+            "genome_alpha": 0.25,
+            "cold_start_threshold": 70
+          }
+        },
+        {
+          "id": "OPT_006",
+          "name": "Genome混合模型(Heavy weight)",
+          "config": {
+            "use_genome_hybrid": true,
+            "genome_alpha": 0.75,
+            "cold_start_threshold": 70
+          }
+        },
+        {
+          "id": "OPT_007",
+          "name": "Genome混合模型(Low threshold)",
+          "config": {
+            "use_genome_hybrid": true,
+            "genome_alpha": 0.5,
+            "cold_start_threshold": 20
+          }
+        },
+        {
+          "id": "OPT_008",
+          "name": "Genome混合模型(High threshold)",
+          "config": {
+            "use_genome_hybrid": true,
+            "genome_alpha": 0.5,
+            "cold_start_threshold": 100
+          }
+        },
+        {
+          "id": "OPT_009",
+          "name": "Genome混合模型(Super threshold)",
+          "config": {
+            "use_genome_hybrid": true,
+            "genome_alpha": 0.5,
+            "cold_start_threshold": 175
+          }
+        },
+        {
+          "id": "OPT_010",
+          "name": "Genome混合模型(Ultra threshold)",
+          "config": {
+            "use_genome_hybrid": true,
+            "genome_alpha": 0.5,
+            "cold_start_threshold": 250
           }
         }
       ]

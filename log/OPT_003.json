@@ -1,0 +1,40 @@
+{
+  "name": "OPT_003",
+  "n_samples": 20000,
+  "metrics": {
+    "n_samples": 20000.0,
+    "hit_rate": 0.67755,
+    "precision": 0.067755,
+    "recall": 0.67755,
+    "mrr": 0.4917721825396826,
+    "ndcg": 0.536133233086262,
+    "rmse": 0.9599566964066847,
+    "mae": 0.8502564256865899
+  },
+  "time_records": {
+    "載入資料": 6.39668345451355,
+    "建立映射": 0.5280275344848633,
+    "建立稀疏矩陣": 0.11960029602050781,
+    "SVD 降維": 88.74630880355835,
+    "訓練 KNN": 0.05328774452209473,
+    "評估": 128.14857697486877
+  },
+  "peak_memory_mb": 4230.08984375,
+  "config": {
+    "data_limit": null,
+    "min_item_ratings": 0,
+    "use_timestamp": false,
+    "use_item_bias": false,
+    "use_svd": true,
+    "n_components": 1024,
+    "use_time_decay": false,
+    "half_life_days": 500,
+    "use_tfidf": false,
+    "k_neighbors": 40,
+    "amplification_factor": 1.0,
+    "top_n": 10,
+    "random_state": 42,
+    "use_genome_hybrid": true,
+    "genome_alpha": 0.5
+  }
+}

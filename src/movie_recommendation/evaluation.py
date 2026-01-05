@@ -148,7 +148,9 @@ class Evaluator:
         test_users: np.ndarray,
         top_n: int = 10,
         item_means: Dict[int, float] = None,
-        global_mean: float = 3.5
+        global_mean: float = 3.5,
+        hybrid_engine = None,
+        hybrid_config: Dict = None
     ) -> Dict[str, float]:
         """
         Evaluate using Leave-One-Out strategy.
@@ -248,6 +250,38 @@ class Evaluator:
                         if m_idx in watched_set and m_idx != target_movie_idx:
                             continue
                         candidate_scores[m_idx] = candidate_scores.get(m_idx, 0.0) + sim * r
+
+                if hybrid_engine and hybrid_config:
+                    alpha = hybrid_config.get('alpha', 0.2)
+                    threshold = hybrid_config.get('threshold', 50)
+                    
+                    # 只有當使用者歷史夠少 (冷啟動) 時才介入，或者你想要全程介入也可以
+                    if len(watched_items) < threshold:
+                        
+                        # 1. 計算使用者的基因偏好 (Vector)
+                        user_profile = hybrid_engine.get_user_profile(watched_items)
+                        
+                        if user_profile is not None:
+                            # 2. 準備候選名單 (原本 KNN 找出的候選人)
+                            candidates = list(candidate_scores.keys())
+                            
+                            # 3. 批量計算內容相似度分數 (Vectorized)
+                            content_scores = hybrid_engine.calculate_batch_scores(candidates, user_profile)
+                            
+                            # 4. 融合分數
+                            for idx, m_idx in enumerate(candidates):
+                                knn_score = candidate_scores[m_idx]
+                                c_score = content_scores[idx]
+                                
+                                # 注意：knn_score 可能是 sum(sim*rating)，值域可能很大 (例如 > 5)
+                                # content_score 是 cosine similarity (0~1)
+                                # 這裡建議做簡單的加權融合，或者將 content_score 映射到 rating 區間
+                                # 簡單版公式：
+                                # 假設 knn_score 已經隱含了 rating 意義，我們把 content score 當作加分項
+                                # 或者：final = (1-alpha)*knn + alpha * (c_score * 5.0)
+                                
+                                final_score = (1 - alpha) * knn_score + alpha * (c_score * 5.0)
+                                candidate_scores[m_idx] = final_score
 
                 recommended = [item for item, _ in sorted(candidate_scores.items(), key=lambda x: x[1], reverse=True)[:top_n]]
 
