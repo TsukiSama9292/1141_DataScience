@@ -39,12 +39,12 @@ class KNNRecommender:
         
     def fit(self, features: np.ndarray):
         """
-        Fit the KNN model.
+        Initialize KNN model (Lazy Learning - no training).
         
         Args:
             features: User feature matrix (n_users x n_features)
         """
-        logger.info(f"訓練 KNN 模型: k={self.n_neighbors}, metric={self.metric}")
+        logger.info(f"初始化 KNN 索引: k={self.n_neighbors}, metric={self.metric} (Lazy Learning - 無訓練階段)")
         
         self.knn = NearestNeighbors(
             metric=self.metric,

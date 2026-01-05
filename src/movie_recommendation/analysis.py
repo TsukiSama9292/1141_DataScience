@@ -36,7 +36,7 @@ class ExperimentAnalyzer:
             'KNN': [f'KNN_{i:03d}' for i in range(1, 8)],
             'SVD_KNN_EXPAND': [f'SVD_KNN_EXPAND_{i:03d}' for i in range(1, 37)],
             'BIAS': ['BIAS_001', 'BIAS_002'],
-            'OPT': ['OPT_001', 'OPT_002']
+            'OPT': [f'OPT_{i:03d}' for i in range(1, 11)]
         }
     
     def load_result(self, config_name: str) -> Optional[Dict[str, Any]]:

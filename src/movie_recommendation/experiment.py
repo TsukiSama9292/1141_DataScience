@@ -223,11 +223,10 @@ class Experiment:
             # Many sklearn routines accept CSR sparse matrices for distance computations.
             self.user_features = matrix_for_knn
         
-        # Train KNN
-        stage_start = time.time()
+        # Initialize KNN (Lazy Learning - no training, just memory storage)
         self.recommender.fit(self.user_features)
         self.tracker.sample_memory()
-        self._log_time("訓練 KNN", stage_start)
+        # Note: KNN fit() takes ~0.05s (just memory indexing), not recorded separately
         
         # Evaluation
         stage_start = time.time()
