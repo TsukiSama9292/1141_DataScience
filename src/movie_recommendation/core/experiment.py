@@ -33,6 +33,7 @@ class ExperimentConfig:
         half_life_days: int = 500,
         use_tfidf: bool = False,
         k_neighbors: int = 20,
+        similarity_metric: str = 'cosine',
         amplification_factor: float = 1.0,
         n_samples: int = 500,
         top_n: int = 10,
@@ -55,10 +56,14 @@ class ExperimentConfig:
             half_life_days: Half-life for time decay
             use_tfidf: Whether to apply TF-IDF weighting
             k_neighbors: Number of nearest neighbors
+            similarity_metric: Similarity metric ('cosine', 'correlation' for Pearson, 'euclidean', etc.)
             amplification_factor: Similarity amplification factor
             n_samples: Number of samples for evaluation
             top_n: Number of recommendations to generate
             random_state: Random seed for reproducibility
+            use_genome_hybrid: Whether to use Genome hybrid model
+            genome_alpha: Weight for genome scores in hybrid model
+            cold_start_threshold: Threshold for cold-start detection
         """
         self.data_limit = data_limit
         self.min_item_ratings = min_item_ratings
@@ -70,6 +75,7 @@ class ExperimentConfig:
         self.half_life_days = half_life_days
         self.use_tfidf = use_tfidf
         self.k_neighbors = k_neighbors
+        self.similarity_metric = similarity_metric
         self.amplification_factor = amplification_factor
         self.n_samples = n_samples
         self.top_n = top_n
@@ -110,7 +116,7 @@ class Experiment:
         self.feature_engineer = FeatureEngineer()
         self.recommender = KNNRecommender(
             n_neighbors=config.k_neighbors,
-            metric='cosine',
+            metric=config.similarity_metric,
             algorithm='brute',
             n_jobs=-1
         )

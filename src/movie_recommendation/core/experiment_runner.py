@@ -278,6 +278,11 @@ class ExperimentRunner:
                 config_updates['use_item_bias'] = best_exp.config.get('use_item_bias', False)
                 logger.info(f"   → Bias: use_item_bias={config_updates['use_item_bias']}")
             
+            elif completed_stage == 'METRIC_COMPARISON':
+                # METRIC_COMPARISON階段：提取最佳相似度度量
+                config_updates['similarity_metric'] = best_exp.config.get('similarity_metric', 'cosine')
+                logger.info(f"   → Similarity Metric: {config_updates['similarity_metric']}")
+            
             elif completed_stage == 'OPT':
                 # OPT階段：提取最佳優化配置
                 config_updates['use_time_decay'] = best_exp.config.get('use_time_decay', False)

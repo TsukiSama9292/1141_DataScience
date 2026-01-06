@@ -98,7 +98,93 @@
 
 > 💡 **關鍵發現**: Genome 混合模型（基因標籤 + KNN 協同過濾）達到最優性能（67.77%），透過 `genome_alpha=0.75` 參數平衡內容特徵與協同訊號。SVD 降維與純 KNN 的性能接近（67.74% vs 67.67%），但 Genome 混合模型在冷啟動場景下表現更佳。
 
-### 📈 實驗結果可視化
+### � 快速開始
+
+### 安裝依賴
+
+```bash
+# 安裝 uv（如果尚未安裝）
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# 克隆專案
+git clone <repository-url>
+cd 1141_DataScience
+
+# uv 會自動管理依賴
+uv sync
+```
+
+### 基礎使用
+
+```bash
+# 查看所有可用階段
+uv run python main.py --list-stages
+
+# 查看所有實驗
+uv run python main.py --list-experiments
+
+# 運行特定階段
+uv run python main.py --stage METRIC_COMPARISON
+
+# 查看執行進度
+uv run python main.py analyze progress
+```
+
+### 完整級聯實驗流程
+
+**步驟 1：測試相似度度量**（4個實驗，~8分鐘）
+
+```bash
+# 測試 4 種相似度度量：cosine, correlation, euclidean, manhattan
+uv run python main.py --stage METRIC_COMPARISON
+```
+
+**步驟 2：生成完整網格**（100個實驗配置）
+
+```bash
+# 生成 SVD(2^1~2^10) × KNN(5~50) = 100個實驗
+# 系統會自動繼承步驟1的最佳度量
+uv run python main.py grid \
+  --power-of-two \
+  --knn-range 5 50 5 \
+  --stage-id METRIC_FULL_GRID
+```
+
+**步驟 3：執行完整網格**（~3-5小時）
+
+```bash
+# 運行100個實驗，使用最佳相似度度量
+uv run python main.py --stage METRIC_FULL_GRID
+```
+
+**步驟 4：分析結果**
+
+```bash
+# 查看進度
+uv run python main.py analyze progress
+
+# 查看所有分析
+uv run python main.py analyze all
+```
+
+### 自動級聯範例
+
+系統會自動傳遞最佳配置到後續階段：
+
+```bash
+# 一次運行所有階段（自動級聯）
+uv run python main.py
+
+# 系統會自動：
+# 1. METRIC_COMPARISON → 找出最佳相似度度量
+# 2. 級聯最佳度量到 METRIC_FULL_GRID
+# 3. SVD_KNN_GRID → 找出最佳 SVD+KNN 組合
+# 4. 級聯最佳配置到優化階段
+```
+
+---
+
+## �📈 實驗結果可視化
 
 #### 1. SVD + KNN 網格搜索熱力圖
 
@@ -1094,12 +1180,104 @@ config = {
 
 ---
 
+## � 進階功能：相似度度量與級聯實驗
+
+### 支援的相似度度量
+
+專案支援多種相似度度量方式，可透過 `similarity_metric` 參數配置：
+
+| 度量 | 參數值 | 公式 | 特性 | 適用場景 |
+|------|--------|------|------|---------|
+| **餘弦相似度** | `cosine` | $\frac{u \cdot v}{\|\|u\|\| \|\|v\|\|}$ | 關注方向，範圍 [0,1] | 默認選擇，適合大多數場景 |
+| **皮爾森相關係數** | `correlation` | $\frac{\text{cov}(u,v)}{\sigma_u \sigma_v}$ | 考慮評分偏差，自動中心化 | 用戶評分習慣差異大 |
+| **歐幾里得距離** | `euclidean` | $\sqrt{\sum(u_i - v_i)^2}$ | 關注絕對差異 | 需要考慮評分絕對值 |
+| **曼哈頓距離** | `manhattan` | $\sum\|u_i - v_i\|$ | 對離群值不敏感 | 評分有噪聲時 |
+
+### 使用方法
+
+**方法 1：在配置文件中指定**
+
+編輯 `configs/experiments.json`：
+
+```json
+{
+  "id": "EXP_001",
+  "config": {
+    "similarity_metric": "correlation",
+    "k_neighbors": 20,
+    "use_svd": true,
+    "n_components": 256
+  }
+}
+```
+
+**方法 2：使用網格搜索生成**
+
+```bash
+# 生成使用皮爾森相關係數的完整網格
+python main.py grid \
+  --svd-range 2 1024 2 \
+  --knn-range 5 50 5 \
+  --metric correlation \
+  --stage-id PEARSON_GRID
+```
+
+### 自動級聯實驗
+
+系統支援**自動級聯最佳配置**，按順序運行階段時會自動傳遞最佳參數：
+
+```
+METRIC_COMPARISON (度量比較)
+   ├─ 測試 4 種度量: cosine, correlation, euclidean, manhattan
+   └─ 找出最佳度量 → 自動級聯
+         ↓
+METRIC_FULL_GRID (完整網格)
+   ├─ 繼承最佳度量
+   ├─ SVD: 2^1 ~ 2^10 (10個值)
+   ├─ KNN: 5 ~ 50 (10個值)
+   └─ 總計: 100 個組合
+```
+
+**執行方式**：
+
+```bash
+# 方法 1: 自動級聯（推薦）
+python main.py  # 按順序執行所有階段，自動級聯最佳配置
+
+# 方法 2: 手動分步
+python main.py --stage METRIC_COMPARISON  # 先測試度量
+python main.py grid --metric correlation --stage-id METRIC_FULL_GRID  # 生成網格
+python main.py --stage METRIC_FULL_GRID   # 執行網格搜索
+
+# 查看進度
+python main.py analyze progress
+```
+
+### 級聯規則
+
+| 階段 | 提取參數 | 應用到後續階段 |
+|------|---------|---------------|
+| METRIC_COMPARISON | `similarity_metric` | METRIC_FULL_GRID |
+| SVD_KNN_GRID | `n_components`, `k_neighbors` | OPT 階段 |
+| OPT | `genome_alpha`, `cold_start_threshold` | 後續優化 |
+
+**示例輸出**：
+```
+🔍 分析 METRIC_COMPARISON 階段的最佳配置...
+🏆 最佳實驗: METRIC_002 (Hit Rate@10 = 0.6850)
+   → Similarity Metric: correlation
+✅ 將更新後續階段使用 correlation 度量
+```
+
+---
+
 ## 📖 學術參考
 
 - **協同過濾**: Sarwar, B., et al. (2001). *Item-based collaborative filtering recommendation algorithms*. WWW.
 - **評估方法**: Cremonesi, P., et al. (2010). *Performance of recommender algorithms on top-n recommendation tasks*. RecSys.
 - **資料集**: Harper, F. M., & Konstan, J. A. (2015). *The MovieLens Datasets*. ACM TIST.
 - **SVD 應用**: Koren, Y., et al. (2009). *Matrix factorization techniques for recommender systems*. Computer.
+- **相似度度量**: Aggarwal, C. C. (2016). *Recommender Systems: The Textbook*. Springer.
 
 ---
 

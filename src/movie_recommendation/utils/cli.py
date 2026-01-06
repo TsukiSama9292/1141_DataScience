@@ -146,6 +146,7 @@ def get_next_experiment_id(stage_config: Dict[str, Any], stage_id: str) -> int:
 def generate_grid_experiments(
     svd_values: List[int],
     knn_values: List[int],
+    similarity_metric: Optional[str] = None,
     stage_id: str = "SVD_KNN_GRID",
     base_config: Optional[Dict[str, Any]] = None,
     existing_stage_config: Optional[Dict[str, Any]] = None,
@@ -157,6 +158,7 @@ def generate_grid_experiments(
     Args:
         svd_values: SVD 維度列表
         knn_values: KNN 鄰居數列表
+        similarity_metric: 相似度度量 (None=使用默認值)
         stage_id: 階段 ID
         base_config: 基礎配置
         existing_stage_config: 現有的階段配置（用於檢測重複）
@@ -171,6 +173,10 @@ def generate_grid_experiments(
             "min_item_ratings": 0,
             "use_svd": True
         }
+    
+    # 如果指定了 similarity_metric，添加到 base_config
+    if similarity_metric:
+        base_config["similarity_metric"] = similarity_metric
     
     # 獲取已存在的實驗
     existing_experiments = set()
@@ -195,10 +201,15 @@ def generate_grid_experiments(
             exp_id = f"{stage_id}_{exp_counter:03d}"
             exp_name = f"SVD={svd}×KNN={knn}"
             
-            # 計算 2 的冪次表示
-            svd_power = svd.bit_length() - 1 if svd > 0 else 0
-            knn_power = knn.bit_length() - 1 if knn > 0 else 0
-            description = f"2^{svd_power}維度 × 2^{knn_power}鄰居"
+            # 生成更友好的描述
+            def format_value(val):
+                """如果是 2 的冪次則顯示冪次，否則直接顯示數值"""
+                if val > 0 and (val & (val - 1)) == 0:  # 檢查是否為 2 的冪次
+                    power = val.bit_length() - 1
+                    return f"2^{power}={val}"
+                return str(val)
+            
+            description = f"{format_value(svd)}維度 × {format_value(knn)}鄰居"
             
             experiment = {
                 "id": exp_id,
@@ -217,9 +228,13 @@ def generate_grid_experiments(
         print(f"✅ 跳過 {skipped_count} 個已存在的實驗")
         print(f"➕ 將添加 {len(experiments)} 個新實驗")
     
+    # 統計範圍信息
+    svd_range = f"{min(svd_values)}~{max(svd_values)}" if svd_values else "N/A"
+    knn_range = f"{min(knn_values)}~{max(knn_values)}" if knn_values else "N/A"
+    
     stage_config = {
         "name": "SVD×KNN 網格搜索",
-        "description": "同時測試所有 SVD 和 KNN 組合，找出最佳配對",
+        "description": f"網格搜索 SVD({svd_range}) × KNN({knn_range})，共 {len(svd_values)}×{len(knn_values)}={len(experiments)+skipped_count} 種組合",
         "enabled": True,
         "base_config": base_config,
         "experiments": experiments
@@ -232,6 +247,9 @@ def update_config_with_grid(
     config_path: Path,
     svd_values: Optional[List[int]] = None,
     knn_values: Optional[List[int]] = None,
+    svd_range: Optional[Tuple[int, int, int]] = None,
+    knn_range: Optional[Tuple[int, int, int]] = None,
+    similarity_metric: Optional[str] = None,
     stage_id: str = "SVD_KNN_GRID",
     skip_existing: bool = True,
     dry_run: bool = False
@@ -241,8 +259,11 @@ def update_config_with_grid(
     
     Args:
         config_path: 配置文件路徑
-        svd_values: SVD 維度列表
-        knn_values: KNN 鄰居數列表
+        svd_values: SVD 維度列表（優先使用）
+        knn_values: KNN 鄰居數列表（優先使用）
+        svd_range: SVD 範圍 (start, stop, step)，如 (2, 1024, 2) 表示2的冪次
+        knn_range: KNN 範圍 (start, stop, step)
+        similarity_metric: 相似度度量 ('cosine', 'correlation', 'euclidean', 'manhattan')
         stage_id: 階段 ID
         skip_existing: 是否跳過已存在的實驗
         dry_run: 只生成預覽，不實際保存
@@ -250,11 +271,26 @@ def update_config_with_grid(
     Returns:
         更新後的配置
     """
+    # 處理 SVD 值
     if svd_values is None:
-        svd_values = [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024]
+        if svd_range:
+            start, stop, step = svd_range
+            if step == 2:  # 2的冪次模式
+                svd_values = [2**i for i in range(int(start).bit_length()-1, int(stop).bit_length()) if 2**i <= stop]
+            else:
+                svd_values = list(range(start, stop + 1, step))
+        else:
+            # 默認值：2的冪次從2到1024
+            svd_values = [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024]
     
+    # 處理 KNN 值
     if knn_values is None:
-        knn_values = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50]
+        if knn_range:
+            start, stop, step = knn_range
+            knn_values = list(range(start, stop + 1, step))
+        else:
+            # 默認值：5到50，步長5
+            knn_values = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50]
     
     # 讀取現有配置
     with open(config_path, 'r', encoding='utf-8') as f:
@@ -267,6 +303,7 @@ def update_config_with_grid(
     new_stage = generate_grid_experiments(
         svd_values=svd_values,
         knn_values=knn_values,
+        similarity_metric=similarity_metric,
         stage_id=stage_id,
         existing_stage_config=existing_stage,
         skip_existing=skip_existing

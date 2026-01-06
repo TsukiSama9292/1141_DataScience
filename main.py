@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-電影推薦系統主程序 v2.1.0
+電影推薦系統主程序 v2.2.0
 
-使用 JSON 配置檔案驅動的自動化實驗執行系統，整合了所有命令行工具。
+使用 JSON 配置檔案驅動的自動化實驗執行系統，支援自動級聯最佳配置。
 
 主要功能：
 - 從 JSON 配置檔案載入實驗定義
@@ -12,8 +12,8 @@
 - 提供實驗分析和配置生成工具
 
 命令：
-  python main.py                           # 執行所有啟用的實驗階段
-  python main.py --stage SVD_KNN_GRID      # 只執行特定階段
+  python main.py                           # 執行所有啟用的實驗階段（自動級聯）
+  python main.py --stage METRIC_COMPARISON # 只執行特定階段
   python main.py --list-stages             # 列出所有可用階段
   python main.py --list-experiments        # 列出所有實驗
   python main.py --force                   # 強制重新運行所有實驗
@@ -23,9 +23,21 @@
   python main.py analyze progress          # 顯示執行進度
   python main.py analyze dataset           # 分析資料集統計
   
-  # 配置生成
+  # 配置生成（支援相似度度量）
   python main.py grid --dry-run            # 預覽網格配置
-  python main.py grid --svd-values 2 4 8   # 生成網格配置
+  python main.py grid --svd-range 2 1024 2 --knn-range 5 50 5   # SVD:2^1~2^10, KNN:5~50
+  python main.py grid --metric correlation --stage-id CUSTOM    # 指定相似度度量
+  python main.py grid --power-of-two --knn-range 5 50 5         # 快速生成2的冪次×線性範圍
+
+自動級聯範例：
+  # 1. 測試相似度度量 → 自動找出最佳度量
+  python main.py --stage METRIC_COMPARISON
+  
+  # 2. 生成完整網格（使用最佳度量）
+  python main.py grid --power-of-two --knn-range 5 50 5 --stage-id METRIC_FULL_GRID
+  
+  # 3. 執行完整網格（自動繼承最佳度量）
+  python main.py --stage METRIC_FULL_GRID
 """
 
 import sys
@@ -178,16 +190,43 @@ def main():
                                 help='SVD 維度列表（例如：2 4 8 16）')
             parser.add_argument('--knn-values', type=int, nargs='+',
                                 help='KNN 鄰居數列表（例如：5 10 15 20）')
+            parser.add_argument('--svd-range', type=int, nargs=3, metavar=('START', 'STOP', 'STEP'),
+                                help='SVD 範圍生成（例如：2 1024 2 表示2的冪次，或 50 500 50 表示等差）')
+            parser.add_argument('--knn-range', type=int, nargs=3, metavar=('START', 'STOP', 'STEP'),
+                                help='KNN 範圍生成（例如：5 50 5）')
+            parser.add_argument('--metric', choices=['cosine', 'correlation', 'euclidean', 'manhattan'],
+                                help='相似度度量 (cosine=餘弦, correlation=皮爾森相關係數)')
+            parser.add_argument('--power-of-two', action='store_true',
+                                help='SVD使用2的冪次序列（2,4,8,...,1024）')
             parser.add_argument('--no-skip-existing', action='store_true',
                                 help='不跳過已存在的實驗')
             parser.add_argument('--dry-run', action='store_true',
                                 help='只生成預覽，不保存')
             
             args = parser.parse_args()
+            
+            # 處理 power-of-two 模式
+            svd_range = None
+            knn_range = None
+            
+            if args.power_of_two and not args.svd_values:
+                # 生成 2 的冪次序列：2, 4, 8, 16, 32, 64, 128, 256, 512, 1024
+                args.svd_values = [2**i for i in range(1, 11)]
+                print(f"🔢 使用2的冪次序列: {args.svd_values}")
+            
+            if args.svd_range:
+                svd_range = tuple(args.svd_range)
+            
+            if args.knn_range:
+                knn_range = tuple(args.knn_range)
+            
             cli.update_config_with_grid(
                 config_path=args.config,
                 svd_values=args.svd_values,
                 knn_values=args.knn_values,
+                svd_range=svd_range,
+                knn_range=knn_range,
+                similarity_metric=args.metric,
                 stage_id=args.stage_id,
                 skip_existing=not args.no_skip_existing,
                 dry_run=args.dry_run
@@ -196,13 +235,14 @@ def main():
     
     # 原有的主程序邏輯
     parser = argparse.ArgumentParser(
-        description='電影推薦系統主程序 v2.1',
+        description='電影推薦系統主程序 v2.2',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 範例:
-  # 實驗執行
-  python main.py                          # 執行所有實驗（自動級聯）
-  python main.py --stage SVD_KNN_GRID     # 只執行網格搜索階段
+  # 實驗執行（支援自動級聯）
+  python main.py                          # 執行所有實驗（自動級聯最佳配置）
+  python main.py --stage METRIC_COMPARISON # 測試相似度度量
+  python main.py --stage METRIC_FULL_GRID  # 執行完整網格（繼承最佳度量）
   python main.py --list-stages            # 列出所有階段
   python main.py --force                  # 強制重新運行所有實驗
   python main.py --report-only            # 只生成報告
@@ -212,9 +252,15 @@ def main():
   python main.py analyze dataset          # 分析資料集統計
   python main.py analyze all              # 執行所有分析
   
-  # 配置生成
+  # 配置生成（支援相似度度量）
   python main.py grid --dry-run           # 預覽網格配置
-  python main.py grid --svd-values 2 4 8  # 生成網格配置
+  python main.py grid --power-of-two --knn-range 5 50 5  # 完整網格
+  python main.py grid --metric correlation --stage-id CUSTOM  # 指定度量
+  
+級聯實驗流程:
+  1. python main.py --stage METRIC_COMPARISON  # 找出最佳度量
+  2. python main.py grid --power-of-two --knn-range 5 50 5 --stage-id METRIC_FULL_GRID
+  3. python main.py --stage METRIC_FULL_GRID   # 自動使用最佳度量
         """
     )
     

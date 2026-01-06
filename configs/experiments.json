@@ -16,6 +16,7 @@
     "half_life_days": 500,
     "use_tfidf": false,
     "k_neighbors": 20,
+    "similarity_metric": "cosine",
     "amplification_factor": 1.0,
     "n_samples": 20000,
     "top_n": 10,
@@ -2262,6 +2263,967 @@
             "use_genome_hybrid": true,
             "genome_alpha": 0.5,
             "cold_start_threshold": 250
+          }
+        }
+      ]
+    },
+    "METRIC_COMPARISON": {
+      "name": "相似度度量比較",
+      "description": "比較餘弦相似度(cosine)與皮爾森相關係數(correlation)的性能差異",
+      "enabled": true,
+      "base_config": {
+        "data_limit": null,
+        "min_item_ratings": 0,
+        "use_svd": true,
+        "n_components": 256,
+        "k_neighbors": 20,
+        "n_samples": 20000
+      },
+      "experiments": [
+        {
+          "id": "METRIC_001",
+          "name": "餘弦相似度(Cosine)",
+          "description": "基準：使用餘弦相似度",
+          "config": {
+            "similarity_metric": "cosine"
+          }
+        },
+        {
+          "id": "METRIC_002",
+          "name": "皮爾森相關係數(Pearson)",
+          "description": "使用皮爾森相關係數(correlation)",
+          "config": {
+            "similarity_metric": "correlation"
+          }
+        },
+        {
+          "id": "METRIC_003",
+          "name": "歐幾里得距離(Euclidean)",
+          "description": "使用歐幾里得距離",
+          "config": {
+            "similarity_metric": "euclidean"
+          }
+        },
+        {
+          "id": "METRIC_004",
+          "name": "曼哈頓距離(Manhattan)",
+          "description": "使用曼哈頓距離",
+          "config": {
+            "similarity_metric": "manhattan"
+          }
+        }
+      ]
+    },
+    "METRIC_FULL_GRID": {
+      "name": "最佳度量完整網格搜索",
+      "description": "繼承 METRIC_COMPARISON 最佳度量 | SVD: 10個值(2~1024) × KNN: 10個值(5~50) = 100組合",
+      "enabled": true,
+      "base_config": {
+        "data_limit": null,
+        "min_item_ratings": 0,
+        "use_svd": true,
+        "n_samples": 20000,
+        "_note": "similarity_metric 將從 METRIC_COMPARISON 階段自動繼承"
+      },
+      "experiments": [
+        {
+          "id": "METRIC_FULL_GRID_001",
+          "name": "SVD=2×KNN=5",
+          "description": "2^1=2維度 × 5鄰居",
+          "config": {
+            "n_components": 2,
+            "k_neighbors": 5
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_002",
+          "name": "SVD=2×KNN=10",
+          "description": "2^1=2維度 × 10鄰居",
+          "config": {
+            "n_components": 2,
+            "k_neighbors": 10
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_003",
+          "name": "SVD=2×KNN=15",
+          "description": "2^1=2維度 × 15鄰居",
+          "config": {
+            "n_components": 2,
+            "k_neighbors": 15
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_004",
+          "name": "SVD=2×KNN=20",
+          "description": "2^1=2維度 × 20鄰居",
+          "config": {
+            "n_components": 2,
+            "k_neighbors": 20
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_005",
+          "name": "SVD=2×KNN=25",
+          "description": "2^1=2維度 × 25鄰居",
+          "config": {
+            "n_components": 2,
+            "k_neighbors": 25
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_006",
+          "name": "SVD=2×KNN=30",
+          "description": "2^1=2維度 × 30鄰居",
+          "config": {
+            "n_components": 2,
+            "k_neighbors": 30
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_007",
+          "name": "SVD=2×KNN=35",
+          "description": "2^1=2維度 × 35鄰居",
+          "config": {
+            "n_components": 2,
+            "k_neighbors": 35
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_008",
+          "name": "SVD=2×KNN=40",
+          "description": "2^1=2維度 × 40鄰居",
+          "config": {
+            "n_components": 2,
+            "k_neighbors": 40
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_009",
+          "name": "SVD=2×KNN=45",
+          "description": "2^1=2維度 × 45鄰居",
+          "config": {
+            "n_components": 2,
+            "k_neighbors": 45
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_010",
+          "name": "SVD=2×KNN=50",
+          "description": "2^1=2維度 × 50鄰居",
+          "config": {
+            "n_components": 2,
+            "k_neighbors": 50
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_011",
+          "name": "SVD=4×KNN=5",
+          "description": "2^2=4維度 × 5鄰居",
+          "config": {
+            "n_components": 4,
+            "k_neighbors": 5
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_012",
+          "name": "SVD=4×KNN=10",
+          "description": "2^2=4維度 × 10鄰居",
+          "config": {
+            "n_components": 4,
+            "k_neighbors": 10
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_013",
+          "name": "SVD=4×KNN=15",
+          "description": "2^2=4維度 × 15鄰居",
+          "config": {
+            "n_components": 4,
+            "k_neighbors": 15
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_014",
+          "name": "SVD=4×KNN=20",
+          "description": "2^2=4維度 × 20鄰居",
+          "config": {
+            "n_components": 4,
+            "k_neighbors": 20
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_015",
+          "name": "SVD=4×KNN=25",
+          "description": "2^2=4維度 × 25鄰居",
+          "config": {
+            "n_components": 4,
+            "k_neighbors": 25
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_016",
+          "name": "SVD=4×KNN=30",
+          "description": "2^2=4維度 × 30鄰居",
+          "config": {
+            "n_components": 4,
+            "k_neighbors": 30
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_017",
+          "name": "SVD=4×KNN=35",
+          "description": "2^2=4維度 × 35鄰居",
+          "config": {
+            "n_components": 4,
+            "k_neighbors": 35
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_018",
+          "name": "SVD=4×KNN=40",
+          "description": "2^2=4維度 × 40鄰居",
+          "config": {
+            "n_components": 4,
+            "k_neighbors": 40
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_019",
+          "name": "SVD=4×KNN=45",
+          "description": "2^2=4維度 × 45鄰居",
+          "config": {
+            "n_components": 4,
+            "k_neighbors": 45
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_020",
+          "name": "SVD=4×KNN=50",
+          "description": "2^2=4維度 × 50鄰居",
+          "config": {
+            "n_components": 4,
+            "k_neighbors": 50
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_021",
+          "name": "SVD=8×KNN=5",
+          "description": "2^3=8維度 × 5鄰居",
+          "config": {
+            "n_components": 8,
+            "k_neighbors": 5
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_022",
+          "name": "SVD=8×KNN=10",
+          "description": "2^3=8維度 × 10鄰居",
+          "config": {
+            "n_components": 8,
+            "k_neighbors": 10
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_023",
+          "name": "SVD=8×KNN=15",
+          "description": "2^3=8維度 × 15鄰居",
+          "config": {
+            "n_components": 8,
+            "k_neighbors": 15
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_024",
+          "name": "SVD=8×KNN=20",
+          "description": "2^3=8維度 × 20鄰居",
+          "config": {
+            "n_components": 8,
+            "k_neighbors": 20
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_025",
+          "name": "SVD=8×KNN=25",
+          "description": "2^3=8維度 × 25鄰居",
+          "config": {
+            "n_components": 8,
+            "k_neighbors": 25
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_026",
+          "name": "SVD=8×KNN=30",
+          "description": "2^3=8維度 × 30鄰居",
+          "config": {
+            "n_components": 8,
+            "k_neighbors": 30
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_027",
+          "name": "SVD=8×KNN=35",
+          "description": "2^3=8維度 × 35鄰居",
+          "config": {
+            "n_components": 8,
+            "k_neighbors": 35
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_028",
+          "name": "SVD=8×KNN=40",
+          "description": "2^3=8維度 × 40鄰居",
+          "config": {
+            "n_components": 8,
+            "k_neighbors": 40
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_029",
+          "name": "SVD=8×KNN=45",
+          "description": "2^3=8維度 × 45鄰居",
+          "config": {
+            "n_components": 8,
+            "k_neighbors": 45
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_030",
+          "name": "SVD=8×KNN=50",
+          "description": "2^3=8維度 × 50鄰居",
+          "config": {
+            "n_components": 8,
+            "k_neighbors": 50
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_031",
+          "name": "SVD=16×KNN=5",
+          "description": "2^4=16維度 × 5鄰居",
+          "config": {
+            "n_components": 16,
+            "k_neighbors": 5
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_032",
+          "name": "SVD=16×KNN=10",
+          "description": "2^4=16維度 × 10鄰居",
+          "config": {
+            "n_components": 16,
+            "k_neighbors": 10
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_033",
+          "name": "SVD=16×KNN=15",
+          "description": "2^4=16維度 × 15鄰居",
+          "config": {
+            "n_components": 16,
+            "k_neighbors": 15
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_034",
+          "name": "SVD=16×KNN=20",
+          "description": "2^4=16維度 × 20鄰居",
+          "config": {
+            "n_components": 16,
+            "k_neighbors": 20
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_035",
+          "name": "SVD=16×KNN=25",
+          "description": "2^4=16維度 × 25鄰居",
+          "config": {
+            "n_components": 16,
+            "k_neighbors": 25
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_036",
+          "name": "SVD=16×KNN=30",
+          "description": "2^4=16維度 × 30鄰居",
+          "config": {
+            "n_components": 16,
+            "k_neighbors": 30
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_037",
+          "name": "SVD=16×KNN=35",
+          "description": "2^4=16維度 × 35鄰居",
+          "config": {
+            "n_components": 16,
+            "k_neighbors": 35
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_038",
+          "name": "SVD=16×KNN=40",
+          "description": "2^4=16維度 × 40鄰居",
+          "config": {
+            "n_components": 16,
+            "k_neighbors": 40
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_039",
+          "name": "SVD=16×KNN=45",
+          "description": "2^4=16維度 × 45鄰居",
+          "config": {
+            "n_components": 16,
+            "k_neighbors": 45
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_040",
+          "name": "SVD=16×KNN=50",
+          "description": "2^4=16維度 × 50鄰居",
+          "config": {
+            "n_components": 16,
+            "k_neighbors": 50
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_041",
+          "name": "SVD=32×KNN=5",
+          "description": "2^5=32維度 × 5鄰居",
+          "config": {
+            "n_components": 32,
+            "k_neighbors": 5
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_042",
+          "name": "SVD=32×KNN=10",
+          "description": "2^5=32維度 × 10鄰居",
+          "config": {
+            "n_components": 32,
+            "k_neighbors": 10
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_043",
+          "name": "SVD=32×KNN=15",
+          "description": "2^5=32維度 × 15鄰居",
+          "config": {
+            "n_components": 32,
+            "k_neighbors": 15
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_044",
+          "name": "SVD=32×KNN=20",
+          "description": "2^5=32維度 × 20鄰居",
+          "config": {
+            "n_components": 32,
+            "k_neighbors": 20
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_045",
+          "name": "SVD=32×KNN=25",
+          "description": "2^5=32維度 × 25鄰居",
+          "config": {
+            "n_components": 32,
+            "k_neighbors": 25
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_046",
+          "name": "SVD=32×KNN=30",
+          "description": "2^5=32維度 × 30鄰居",
+          "config": {
+            "n_components": 32,
+            "k_neighbors": 30
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_047",
+          "name": "SVD=32×KNN=35",
+          "description": "2^5=32維度 × 35鄰居",
+          "config": {
+            "n_components": 32,
+            "k_neighbors": 35
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_048",
+          "name": "SVD=32×KNN=40",
+          "description": "2^5=32維度 × 40鄰居",
+          "config": {
+            "n_components": 32,
+            "k_neighbors": 40
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_049",
+          "name": "SVD=32×KNN=45",
+          "description": "2^5=32維度 × 45鄰居",
+          "config": {
+            "n_components": 32,
+            "k_neighbors": 45
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_050",
+          "name": "SVD=32×KNN=50",
+          "description": "2^5=32維度 × 50鄰居",
+          "config": {
+            "n_components": 32,
+            "k_neighbors": 50
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_051",
+          "name": "SVD=64×KNN=5",
+          "description": "2^6=64維度 × 5鄰居",
+          "config": {
+            "n_components": 64,
+            "k_neighbors": 5
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_052",
+          "name": "SVD=64×KNN=10",
+          "description": "2^6=64維度 × 10鄰居",
+          "config": {
+            "n_components": 64,
+            "k_neighbors": 10
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_053",
+          "name": "SVD=64×KNN=15",
+          "description": "2^6=64維度 × 15鄰居",
+          "config": {
+            "n_components": 64,
+            "k_neighbors": 15
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_054",
+          "name": "SVD=64×KNN=20",
+          "description": "2^6=64維度 × 20鄰居",
+          "config": {
+            "n_components": 64,
+            "k_neighbors": 20
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_055",
+          "name": "SVD=64×KNN=25",
+          "description": "2^6=64維度 × 25鄰居",
+          "config": {
+            "n_components": 64,
+            "k_neighbors": 25
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_056",
+          "name": "SVD=64×KNN=30",
+          "description": "2^6=64維度 × 30鄰居",
+          "config": {
+            "n_components": 64,
+            "k_neighbors": 30
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_057",
+          "name": "SVD=64×KNN=35",
+          "description": "2^6=64維度 × 35鄰居",
+          "config": {
+            "n_components": 64,
+            "k_neighbors": 35
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_058",
+          "name": "SVD=64×KNN=40",
+          "description": "2^6=64維度 × 40鄰居",
+          "config": {
+            "n_components": 64,
+            "k_neighbors": 40
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_059",
+          "name": "SVD=64×KNN=45",
+          "description": "2^6=64維度 × 45鄰居",
+          "config": {
+            "n_components": 64,
+            "k_neighbors": 45
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_060",
+          "name": "SVD=64×KNN=50",
+          "description": "2^6=64維度 × 50鄰居",
+          "config": {
+            "n_components": 64,
+            "k_neighbors": 50
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_061",
+          "name": "SVD=128×KNN=5",
+          "description": "2^7=128維度 × 5鄰居",
+          "config": {
+            "n_components": 128,
+            "k_neighbors": 5
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_062",
+          "name": "SVD=128×KNN=10",
+          "description": "2^7=128維度 × 10鄰居",
+          "config": {
+            "n_components": 128,
+            "k_neighbors": 10
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_063",
+          "name": "SVD=128×KNN=15",
+          "description": "2^7=128維度 × 15鄰居",
+          "config": {
+            "n_components": 128,
+            "k_neighbors": 15
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_064",
+          "name": "SVD=128×KNN=20",
+          "description": "2^7=128維度 × 20鄰居",
+          "config": {
+            "n_components": 128,
+            "k_neighbors": 20
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_065",
+          "name": "SVD=128×KNN=25",
+          "description": "2^7=128維度 × 25鄰居",
+          "config": {
+            "n_components": 128,
+            "k_neighbors": 25
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_066",
+          "name": "SVD=128×KNN=30",
+          "description": "2^7=128維度 × 30鄰居",
+          "config": {
+            "n_components": 128,
+            "k_neighbors": 30
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_067",
+          "name": "SVD=128×KNN=35",
+          "description": "2^7=128維度 × 35鄰居",
+          "config": {
+            "n_components": 128,
+            "k_neighbors": 35
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_068",
+          "name": "SVD=128×KNN=40",
+          "description": "2^7=128維度 × 40鄰居",
+          "config": {
+            "n_components": 128,
+            "k_neighbors": 40
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_069",
+          "name": "SVD=128×KNN=45",
+          "description": "2^7=128維度 × 45鄰居",
+          "config": {
+            "n_components": 128,
+            "k_neighbors": 45
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_070",
+          "name": "SVD=128×KNN=50",
+          "description": "2^7=128維度 × 50鄰居",
+          "config": {
+            "n_components": 128,
+            "k_neighbors": 50
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_071",
+          "name": "SVD=256×KNN=5",
+          "description": "2^8=256維度 × 5鄰居",
+          "config": {
+            "n_components": 256,
+            "k_neighbors": 5
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_072",
+          "name": "SVD=256×KNN=10",
+          "description": "2^8=256維度 × 10鄰居",
+          "config": {
+            "n_components": 256,
+            "k_neighbors": 10
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_073",
+          "name": "SVD=256×KNN=15",
+          "description": "2^8=256維度 × 15鄰居",
+          "config": {
+            "n_components": 256,
+            "k_neighbors": 15
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_074",
+          "name": "SVD=256×KNN=20",
+          "description": "2^8=256維度 × 20鄰居",
+          "config": {
+            "n_components": 256,
+            "k_neighbors": 20
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_075",
+          "name": "SVD=256×KNN=25",
+          "description": "2^8=256維度 × 25鄰居",
+          "config": {
+            "n_components": 256,
+            "k_neighbors": 25
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_076",
+          "name": "SVD=256×KNN=30",
+          "description": "2^8=256維度 × 30鄰居",
+          "config": {
+            "n_components": 256,
+            "k_neighbors": 30
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_077",
+          "name": "SVD=256×KNN=35",
+          "description": "2^8=256維度 × 35鄰居",
+          "config": {
+            "n_components": 256,
+            "k_neighbors": 35
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_078",
+          "name": "SVD=256×KNN=40",
+          "description": "2^8=256維度 × 40鄰居",
+          "config": {
+            "n_components": 256,
+            "k_neighbors": 40
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_079",
+          "name": "SVD=256×KNN=45",
+          "description": "2^8=256維度 × 45鄰居",
+          "config": {
+            "n_components": 256,
+            "k_neighbors": 45
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_080",
+          "name": "SVD=256×KNN=50",
+          "description": "2^8=256維度 × 50鄰居",
+          "config": {
+            "n_components": 256,
+            "k_neighbors": 50
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_081",
+          "name": "SVD=512×KNN=5",
+          "description": "2^9=512維度 × 5鄰居",
+          "config": {
+            "n_components": 512,
+            "k_neighbors": 5
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_082",
+          "name": "SVD=512×KNN=10",
+          "description": "2^9=512維度 × 10鄰居",
+          "config": {
+            "n_components": 512,
+            "k_neighbors": 10
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_083",
+          "name": "SVD=512×KNN=15",
+          "description": "2^9=512維度 × 15鄰居",
+          "config": {
+            "n_components": 512,
+            "k_neighbors": 15
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_084",
+          "name": "SVD=512×KNN=20",
+          "description": "2^9=512維度 × 20鄰居",
+          "config": {
+            "n_components": 512,
+            "k_neighbors": 20
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_085",
+          "name": "SVD=512×KNN=25",
+          "description": "2^9=512維度 × 25鄰居",
+          "config": {
+            "n_components": 512,
+            "k_neighbors": 25
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_086",
+          "name": "SVD=512×KNN=30",
+          "description": "2^9=512維度 × 30鄰居",
+          "config": {
+            "n_components": 512,
+            "k_neighbors": 30
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_087",
+          "name": "SVD=512×KNN=35",
+          "description": "2^9=512維度 × 35鄰居",
+          "config": {
+            "n_components": 512,
+            "k_neighbors": 35
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_088",
+          "name": "SVD=512×KNN=40",
+          "description": "2^9=512維度 × 40鄰居",
+          "config": {
+            "n_components": 512,
+            "k_neighbors": 40
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_089",
+          "name": "SVD=512×KNN=45",
+          "description": "2^9=512維度 × 45鄰居",
+          "config": {
+            "n_components": 512,
+            "k_neighbors": 45
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_090",
+          "name": "SVD=512×KNN=50",
+          "description": "2^9=512維度 × 50鄰居",
+          "config": {
+            "n_components": 512,
+            "k_neighbors": 50
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_091",
+          "name": "SVD=1024×KNN=5",
+          "description": "2^10=1024維度 × 5鄰居",
+          "config": {
+            "n_components": 1024,
+            "k_neighbors": 5
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_092",
+          "name": "SVD=1024×KNN=10",
+          "description": "2^10=1024維度 × 10鄰居",
+          "config": {
+            "n_components": 1024,
+            "k_neighbors": 10
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_093",
+          "name": "SVD=1024×KNN=15",
+          "description": "2^10=1024維度 × 15鄰居",
+          "config": {
+            "n_components": 1024,
+            "k_neighbors": 15
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_094",
+          "name": "SVD=1024×KNN=20",
+          "description": "2^10=1024維度 × 20鄰居",
+          "config": {
+            "n_components": 1024,
+            "k_neighbors": 20
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_095",
+          "name": "SVD=1024×KNN=25",
+          "description": "2^10=1024維度 × 25鄰居",
+          "config": {
+            "n_components": 1024,
+            "k_neighbors": 25
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_096",
+          "name": "SVD=1024×KNN=30",
+          "description": "2^10=1024維度 × 30鄰居",
+          "config": {
+            "n_components": 1024,
+            "k_neighbors": 30
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_097",
+          "name": "SVD=1024×KNN=35",
+          "description": "2^10=1024維度 × 35鄰居",
+          "config": {
+            "n_components": 1024,
+            "k_neighbors": 35
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_098",
+          "name": "SVD=1024×KNN=40",
+          "description": "2^10=1024維度 × 40鄰居",
+          "config": {
+            "n_components": 1024,
+            "k_neighbors": 40
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_099",
+          "name": "SVD=1024×KNN=45",
+          "description": "2^10=1024維度 × 45鄰居",
+          "config": {
+            "n_components": 1024,
+            "k_neighbors": 45
+          }
+        },
+        {
+          "id": "METRIC_FULL_GRID_100",
+          "name": "SVD=1024×KNN=50",
+          "description": "2^10=1024維度 × 50鄰居",
+          "config": {
+            "n_components": 1024,
+            "k_neighbors": 50
           }
         }
       ]
